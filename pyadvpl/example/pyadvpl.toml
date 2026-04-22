@@ -1,0 +1,10 @@
+[project]
+name = "projeto_exemplo"
+author = "Cleudeir"
+protheus_version = "12.1.2310"
+
+[transpile]
+input_dir = "src"
+output_dir = "dist"
+include_header = true
+header = "#Include 'Protheus.ch'"
