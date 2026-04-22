@@ -20,8 +20,8 @@ const CAPABILITIES = [
 const App: React.FC = () => {
   const [inputCode, setInputCode] = useState<string>(
     '# Exemplo de consulta Protheus em Python\n' +
-    'from pyadvpl.engine.core.db import Table\n' +
-    'from pyadvpl.engine.core.ui import MsgAlert\n\n' +
+    'from pyadvpl import Table\n' +
+    'from pyadvpl import MsgAlert\n\n' +
     'def u_ConsultaCliente():\n' +
     '    SA1 = Table("SA1")\n' +
     '    SA1.go_top()\n\n' +

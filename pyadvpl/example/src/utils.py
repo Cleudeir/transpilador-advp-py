@@ -1,4 +1,4 @@
-from pyadvpl.engine import Date
+from pyadvpl import Date
 
 def u_CheckDate():
     dHoje = Date.today()

@@ -1,0 +1,8 @@
+# Engine & API
+fastapi
+uvicorn
+pydantic
+
+# Development & Testing
+pytest
+httpx

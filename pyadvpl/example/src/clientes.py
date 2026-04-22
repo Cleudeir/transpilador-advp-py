@@ -1,4 +1,4 @@
-from pyadvpl.engine import db, ui, protheus
+from pyadvpl import db, ui, protheus
 
 def u_ExemploCli():
     """

@@ -56,7 +56,7 @@ def cmd_init(args):
             f.write(f'[project]\nname = "{args.name}"\nauthor = "Dev"\nprotheus_version = "12.1.2310"\n\n[transpile]\ninput_dir = "src"\noutput_dir = "dist"\ninclude_header = true\nheader = "#Include \'Protheus.ch\'"\n')
 
         with open(project_path / "src" / "main.py", "w") as f:
-            f.write('from pyadvpl.engine import ui\n\ndef u_HelloWorld():\n    ui.MsgAlert("Olá do Python Transpilado!")\n    return None\n')
+            f.write('from pyadvpl import ui\n\ndef u_HelloWorld():\n    ui.MsgAlert("Olá do Python Transpilado!")\n    return None\n')
 
     print(f"Projeto {args.name} inicializado com sucesso.")
 

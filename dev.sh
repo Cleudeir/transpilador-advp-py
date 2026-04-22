@@ -24,11 +24,11 @@ kill_port $OLD_PORT
 
 # Start Backend
 echo "📡 Starting Backend (FastAPI)..."
-cd backend
-source .venv/bin/activate
-python3 main.py > /dev/null 2>&1 &
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+fi
+python3 -m pyadvpl.engine.server > /dev/null 2>&1 &
 BACKEND_PID=$!
-cd ..
 
 # Start Frontend
 echo "💻 Starting Frontend (Vite/React)..."

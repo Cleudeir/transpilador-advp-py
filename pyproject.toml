@@ -12,7 +12,9 @@ authors = [
 dependencies = [
     "fastapi",
     "uvicorn",
-    "pytest"
+    "pydantic",
+    "pytest",
+    "httpx"
 ]
 requires-python = ">=3.8"
 

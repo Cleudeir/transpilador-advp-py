@@ -26,10 +26,25 @@ O **pyadvpl** é um framework de desenvolvimento moderno que permite escrever c�
 - **Node.js & NPM** (apenas para o Dashboard Web)
 
 ### 2. Configuração do Framework (Python)
-Clone o repositório e instale o pacote em modo editável:
+Clone o repositório e configure o ambiente conforme seu sistema:
+
+#### 🐧 Linux / macOS
 ```bash
 git clone https://github.com/Cleudeir/transpilador-advp-py.git
 cd transpilador-advp-py
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+```
+
+#### 🪟 Windows
+```powershell
+git clone https://github.com/Cleudeir/transpilador-advp-py.git
+cd transpilador-advp-py
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
 pip install -e .
 ```
 
@@ -39,6 +54,21 @@ Se desejar usar a interface web, instale as dependências do frontend:
 cd frontend
 npm install
 cd ..
+```
+
+### 4. Ambiente de Desenvolvimento (Scripts Rápidos)
+Para subir o ambiente completo (Backend + Frontend) de uma só vez:
+- **Linux/macOS**: `./dev.sh`
+- **Windows**: `dev.bat`
+
+---
+
+## 🧪 Testes
+O projeto inclui um sistema de testes de transpiração em lote (bulk round-trip tests) para garantir a precisão da transpiração:
+
+```bash
+# Rodar testes em lote (ADVPL -> Python -> ADVPL)
+./run_bulk_tests.sh  # ou run_bulk_tests.bat no Windows
 ```
 
 ---
@@ -68,7 +98,7 @@ meu_projeto/
 #### 2. Escreva seu Código
 No diretório `meu_projeto/src`, crie seus arquivos `.py`. Exemplo:
 ```python
-from pyadvpl.engine import ui
+from pyadvpl import ui
 
 def u_MinhaFuncao():
     ui.MsgAlert("Olá do Python!")

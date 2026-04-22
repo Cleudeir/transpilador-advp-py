@@ -12,12 +12,17 @@ taskkill /F /IM python.exe /T 2>nul
 taskkill /F /IM node.exe /T 2>nul
 
 echo 📡 Starting Backend (FastAPI)...
-start /B cmd /c "cd backend && .venv\Scripts\activate && python main.py"
+if exist .venv (
+    start /B cmd /c ".venv\Scripts\activate && python -m pyadvpl.engine.server"
+) else (
+    start /B cmd /c "python -m pyadvpl.engine.server"
+)
 
 echo 💻 Starting Frontend (Vite/React)...
 cd frontend
 :: We run the frontend in the foreground so the terminal stays open
 npm run dev -- --host 0.0.0.0
+cd ..
 
 echo ✅ Servers initialized.
 pause

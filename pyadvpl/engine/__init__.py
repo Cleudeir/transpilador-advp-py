@@ -1,5 +1,3 @@
-# Transpiler engine for Python-ADVPL
-from . import core
 from .core import (
     array,
     date,
