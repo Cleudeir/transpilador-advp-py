@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import shutil
+import tomllib  # Para ler pyadvpl.toml (Python 3.11+)
 from pathlib import Path
 
 # Tentativa de importar os módulos do transpilador core
@@ -17,8 +18,22 @@ except ImportError:
     try:
         from .transpiler.python_to_ast import PythonToAST
         from .transpiler.advpl_generator import ADVPLGenerator
+        from .transpiler.lexer import Lexer
+        from .transpiler.parser import ADVPLParser
+        from .transpiler.python_generator import PythonGenerator
     except ImportError:
-        print("Erro: Não foi possível carregar os módulos do pyadvpl. Certifique-se de que o pacote está instalado.")
+        print("Erro: Não foi possível carregar os módulos do pyadvpl.")
+
+def load_config():
+    """Lê o arquivo pyadvpl.toml se existir."""
+    config_path = Path("pyadvpl.toml")
+    if config_path.exists():
+        try:
+            with open(config_path, "rb") as f:
+                return tomllib.load(f)
+        except Exception:
+            pass
+    return {}
 
 def cmd_init(args):
     """Inicializa um novo projeto pyadvpl a partir do template."""
@@ -33,7 +48,7 @@ def cmd_init(args):
     template_path = base_path / "templates" / template_name
 
     if template_path.exists():
-        print(f"Inicializando projeto {args.name} a partir do template {template_name}...")
+        print(f"Inicializando projeto {args.name}...")
         shutil.copytree(template_path, project_path)
         
         # Ajusta o nome no arquivo de configuração se existir
@@ -45,95 +60,107 @@ def cmd_init(args):
             with open(config_file, "w") as f:
                 f.write(content)
     else:
-        # Fallback caso o template não seja encontrado
-        print(f"Aviso: Template não encontrado em {template_path}. Criando estrutura básica...")
+        print(f"Criando estrutura básica para {args.name}...")
         project_path.mkdir()
         (project_path / "src").mkdir()
         (project_path / "dist").mkdir()
-        (project_path / "tests").mkdir()
+        (project_path / "legacy").mkdir()
         
         with open(project_path / "pyadvpl.toml", "w") as f:
-            f.write(f'[project]\nname = "{args.name}"\nauthor = "Dev"\nprotheus_version = "12.1.2310"\n\n[transpile]\ninput_dir = "src"\noutput_dir = "dist"\ninclude_header = true\nheader = "#Include \'Protheus.ch\'"\n')
+            f.write(f'[project]\nname = "{args.name}"\n\n[transpile]\ninput_dir = "src"\noutput_dir = "dist"\n')
 
         with open(project_path / "src" / "main.py", "w") as f:
-            f.write('from pyadvpl import ui\n\ndef u_HelloWorld():\n    ui.MsgAlert("Olá do Python Transpilado!")\n    return None\n')
+            f.write('from pyadvpl import ui\n\ndef u_Main():\n    ui.MsgAlert("Novo Projeto!")\n')
 
-    print(f"Projeto {args.name} inicializado com sucesso.")
+    print(f"Sucesso! 'cd {args.name}' e comece a desenvolver.")
 
-def cmd_transpile(args):
-    """Transpila arquivos .py para .prw."""
-    input_path = Path(args.input)
-    output_path = Path(args.output) if args.output else None
+def cmd_build(args):
+    """Atalho para Python -> ADVPL."""
+    config = load_config()
+    input_path = Path(args.input or config.get("transpile", {}).get("input_dir", "src"))
+    output_path = Path(args.output or config.get("transpile", {}).get("output_dir", "dist"))
+    
+    print(f"🔨 Building: {input_path} -> {output_path}")
+    process_transpile(input_path, output_path, "py2adv")
+
+def cmd_convert(args):
+    """Atalho para ADVPL -> Python."""
+    input_path = Path(args.input or "legacy")
+    output_path = Path(args.output or "src")
+    
+    print(f"📂 Converting legacy: {input_path} -> {output_path}")
+    process_transpile(input_path, output_path, "adv2py")
+
+def process_transpile(input_path, output_path, direction):
+    input_ext = ".prw" if direction == "adv2py" else ".py"
+    output_ext = ".py" if direction == "adv2py" else ".prw"
 
     if input_path.is_dir():
-        # Transpilar diretório
-        if not output_path:
-            output_path = input_path.parent / "dist"
         output_path.mkdir(parents=True, exist_ok=True)
-        
-        for py_file in input_path.glob("**/*.py"):
-            if py_file.name == "__init__.py": continue
-            
-            relative_path = py_file.relative_to(input_path)
-            target_file = output_path / relative_path.with_suffix(".prw")
+        for file in input_path.glob(f"**/*{input_ext}"):
+            if file.name == "__init__.py": continue
+            relative_path = file.relative_to(input_path)
+            target_file = output_path / relative_path.with_suffix(output_ext)
             target_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            print(f"Transpilando {py_file} -> {target_file}")
-            transpile_file(py_file, target_file)
+            transpile_file(file, target_file, direction)
     else:
-        # Transpilar arquivo único
-        if not output_path:
-            output_path = input_path.with_suffix(".prw")
-        
-        print(f"Transpilando {input_path} -> {output_path}")
-        transpile_file(input_path, output_path)
+        if not output_path.suffix:
+            output_path = output_path / input_path.with_suffix(output_ext).name
+        transpile_file(input_path, output_path, direction)
 
-def transpile_file(input_file, output_file):
+def transpile_file(input_file, output_file, direction):
     try:
-        with open(input_file, 'r', encoding='utf-8') as f:
+        with open(input_file, 'r', encoding='utf-8' if direction == "py2adv" else 'latin-1') as f:
             code = f.read()
 
-        # Python to ADVPL
-        parser = PythonToAST(code)
-        ast_obj = parser.parse()
-        generator = ADVPLGenerator(ast_obj)
-        output_code = generator.generate()
+        if direction == "py2adv":
+            parser = PythonToAST(code)
+            ast_obj = parser.parse()
+            output_code = ADVPLGenerator(ast_obj).generate()
+            output_code = "#Include 'Protheus.ch'\n\n" + output_code
+        else:
+            lexer = Lexer(code)
+            parser = ADVPLParser(lexer.tokenize())
+            output_code = PythonGenerator(parser.parse()).generate()
 
-        # Add Header
-        header = "#Include 'Protheus.ch'\n\n"
-        with open(output_file, 'w', encoding='latin-1') as f:
-            f.write(header + output_code)
+        with open(output_file, 'w', encoding='utf-8' if direction == "adv2py" else 'latin-1') as f:
+            f.write(output_code)
     except Exception as e:
-        print(f"Erro ao transpilar {input_file}: {e}")
+        print(f"Erro em {input_file}: {e}")
 
 def main():
-    parser = argparse.ArgumentParser(description="pyadvpl CLI — Python para Protheus")
+    parser = argparse.ArgumentParser(description="pyadvpl CLI")
     subparsers = parser.add_subparsers(dest="command")
 
-    # Command: init
-    init_parser = subparsers.add_parser("init", help="Inicializa um novo projeto pyadvpl")
-    init_parser.add_argument("name", help="Nome do projeto")
+    subparsers.add_parser("init", help="Inicia projeto").add_argument("name")
+    
+    build = subparsers.add_parser("build", help="Python -> ADVPL")
+    build.add_argument("input", nargs="?", help="Entrada (padrão: src/)")
+    build.add_argument("-o", "--output", help="Saída (padrão: dist/)")
 
-    # Command: transpile
-    trans_parser = subparsers.add_parser("transpile", help="Transpila Python para ADVPL")
-    trans_parser.add_argument("input", help="Arquivo .py ou diretório de entrada")
-    trans_parser.add_argument("-o", "--output", help="Arquivo .prw ou diretório de saída")
+    convert = subparsers.add_parser("convert", help="ADVPL -> Python")
+    convert.add_argument("input", nargs="?", help="Entrada (padrão: legacy/)")
+    convert.add_argument("-o", "--output", help="Saída (padrão: src/)")
 
-    # Command: serve
-    serve_parser = subparsers.add_parser("serve", help="Inicia o servidor de API para o dashboard web")
-    serve_parser.add_argument("--host", default="0.0.0.0", help="Host do servidor")
-    serve_parser.add_argument("--port", type=int, default=8040, help="Porta do servidor")
+    subparsers.add_parser("dev", help="Inicia Dashboard")
+    
+    # Manter transpile para compatibilidade
+    trans = subparsers.add_parser("transpile", help="Transpile (legacy)")
+    trans.add_argument("input")
+    trans.add_argument("-o", "--output")
+    trans.add_argument("-d", "--direction", default="py2adv")
 
     args = parser.parse_args()
 
-    if args.command == "init":
-        cmd_init(args)
-    elif args.command == "transpile":
-        cmd_transpile(args)
-    elif args.command == "serve":
+    if args.command == "init": cmd_init(args)
+    elif args.command == "build": cmd_build(args)
+    elif args.command == "convert": cmd_convert(args)
+    elif args.command == "dev" or args.command == "serve":
         import uvicorn
         from .server import app
-        uvicorn.run(app, host=args.host, port=args.port)
+        uvicorn.run(app, host="0.0.0.0", port=8040)
+    elif args.command == "transpile":
+        process_transpile(Path(args.input), Path(args.output) if args.output else Path("dist"), args.direction)
     else:
         parser.print_help()
 

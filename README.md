@@ -13,8 +13,8 @@ O **pyadvpl** é um framework de desenvolvimento moderno que permite escrever c�
 - **💎 Escrita Idiomática**: Escreva Python real, use f-strings, listas, e loops modernos.
 - **📦 Biblioteca de Stubs**: Autocomplete completo no VS Code para funções como `MsgAlert`, `DbGoTop`, `SuperGetMV`, etc.
 - **🔄 Transpilação Inteligente**: Mapeia automaticamente classes `Table` para acesso via Alias (`SA1->A1_NOME`).
-- **⚡ CLI Integrada**: Comando `pyadvpl` para inicializar projetos, transpilar e subir o dashboard.
-- **🖥️ Dashboard Web**: Interface moderna em React para transpilação em tempo real e testes rápidos.
+- **⚡ CLI Integrada**: Comandos simplificados como `build`, `convert` e `dev`.
+- **🖥️ Dashboard Web**: Interface moderna em React para transpilação em tempo real.
 - **🛠️ Auto-Declaração**: O framework detecta suas variáveis e as declara como `LOCAL` automaticamente no ADVPL gerado.
 
 ---
@@ -64,11 +64,16 @@ Para subir o ambiente completo (Backend + Frontend) de uma só vez:
 ---
 
 ## 🧪 Testes
-O projeto inclui um sistema de testes de transpiração em lote (bulk round-trip tests) para garantir a precisão da transpiração:
+O projeto inclui um sistema de testes de transpiração em lote (bulk round-trip tests) para garantir a precisão:
 
+#### 🐧 Linux / macOS
 ```bash
-# Rodar testes em lote (ADVPL -> Python -> ADVPL)
-./run_bulk_tests.sh  # ou run_bulk_tests.bat no Windows
+./run_bulk_tests.sh
+```
+
+#### 🪟 Windows
+```powershell
+run_bulk_tests.bat
 ```
 
 ---
@@ -106,18 +111,31 @@ def u_MinhaFuncao():
 
 #### 3. Transpile para ADVPL
 ```bash
-pyadvpl transpile src/ -o dist/
+pyadvpl build
+```
+*O comando lê automaticamente a pasta `src/` e gera os arquivos em `dist/`.*
+
+---
+
+### B. Conversão de Código Legado (ADVPL -> Python)
+
+O **pyadvpl** permite converter seus arquivos `.prw` antigos para `.py` facilmente.
+
+#### 1. Converta seus arquivos
+```bash
+# Converte arquivos da pasta legacy/ para src/
+pyadvpl convert
 ```
 
 ---
 
-### B. Fluxo Via Dashboard Web (Desenvolvimento)
+### C. Fluxo Via Dashboard Web (Desenvolvimento)
 
 O dashboard permite colar código Python e ver o ADVPL gerado instantaneamente.
 
 #### 1. Inicie o Backend (API)
 ```bash
-pyadvpl serve
+pyadvpl dev
 ```
 *A API rodará por padrão em `http://localhost:8040`.*
 
