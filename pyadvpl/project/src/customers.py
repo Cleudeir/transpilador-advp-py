@@ -1,8 +1,8 @@
 from pyadvpl import db, ui, protheus
 
-def u_ExemploCli():
+def u_CustomerQuery():
     """
-    Função de exemplo: Consulta de Clientes (SA1)
+    Sample function: Customer Query (SA1)
     """
     mv_parm = protheus.SuperGetMV("MV_ESTADO", "SP")
     ui.MsgInfo(f"Iniciando busca no estado: {mv_parm}")

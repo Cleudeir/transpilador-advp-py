@@ -1,7 +1,7 @@
 #include 'protheus.ch'
 
-// Exemplo de código legado para ser convertido para Python
-User Function ExemploLegado()
+// Legacy code sample to be converted to Python
+User Function LegacySample()
     Local nI := 0
     Local cMsg := "Iniciando processamento..."
     

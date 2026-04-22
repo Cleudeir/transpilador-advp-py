@@ -1,6 +1,6 @@
 [project]
-name = "projeto_exemplo"
-author = "Cleudeir"
+name = "projeto"
+author = "pyadvpl"
 protheus_version = "12.1.2310"
 
 [transpile]

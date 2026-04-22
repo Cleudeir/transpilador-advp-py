@@ -43,9 +43,9 @@ def cmd_init(args):
         return
 
     # Caminho do template
-    template_name = "projeto_exemplo"
-    base_path = Path(__file__).parent
-    template_path = base_path / "templates" / template_name
+    template_name = "project"
+    base_path = Path(__file__).parent.parent
+    template_path = base_path / template_name
 
     if template_path.exists():
         print(f"Inicializando projeto {args.name}...")
@@ -56,7 +56,7 @@ def cmd_init(args):
         if config_file.exists():
             with open(config_file, "r") as f:
                 content = f.read()
-            content = content.replace('name = "projeto_exemplo"', f'name = "{args.name}"')
+            content = content.replace('name = "projeto"', f'name = "{args.name}"')
             with open(config_file, "w") as f:
                 f.write(content)
     else:

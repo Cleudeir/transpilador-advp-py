@@ -184,13 +184,9 @@ npm run dev
 
 Este projeto utiliza um modelo de **Licenciamento Dual**:
 
+### 💰 Informações de Uso
 - **Uso Comunitário (Gratuito)**: Livre para uso pessoal, estudos, projetos open source e empresas com faturamento anual **inferior a R$ 100.000,00**. Regido pelos termos da [Licença MIT](LICENSE).
 - **Uso Comercial (Pago)**: Obrigatório para empresas com faturamento anual **superior a R$ 100.000,00**.
-
-### 💰 Informações de Uso
-
-- **Gratuito**: Uso livre para empresas e desenvolvedores com faturamento anual **inferior a R$ 100.000,00**.
-- **Pago**: Licença obrigatória para empresas com faturamento anual **superior a R$ 100.000,00**.
 
 Para adquirir sua licença comercial ou consultar valores, entre em contato via: **cleudeirsilva@gmail.com**.
 
