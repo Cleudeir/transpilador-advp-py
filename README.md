@@ -85,6 +85,8 @@ O **pyadvpl** oferece duas formas de trabalho: via **Linha de Comando (CLI)** ou
 ### A. Fluxo Via CLI (Produção)
 
 #### 1. Inicialize um Novo Projeto
+
+
 Crie a estrutura padrão do projeto:
 ```bash
 pyadvpl init meu_projeto

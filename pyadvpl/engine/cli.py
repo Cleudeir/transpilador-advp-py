@@ -59,6 +59,11 @@ def cmd_init(args):
             content = content.replace('name = "projeto"', f'name = "{args.name}"')
             with open(config_file, "w") as f:
                 f.write(content)
+        
+        # Remove pasta 'exemplo' se existir no template
+        exemplo_path = project_path / "exemplo"
+        if exemplo_path.exists():
+            shutil.rmtree(exemplo_path)
     else:
         print(f"Criando estrutura básica para {args.name}...")
         project_path.mkdir()
