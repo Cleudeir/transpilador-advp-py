@@ -5,6 +5,18 @@ import shutil
 import tomllib  # Para ler pyadvpl.toml (Python 3.11+)
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Carrega .env a partir do diretório de trabalho atual (projeto do usuário)
+# ou do diretório raiz do framework como fallback
+_cwd_env = Path.cwd() / ".env"
+_pkg_env = Path(__file__).parent.parent.parent / ".env"
+load_dotenv(dotenv_path=_cwd_env if _cwd_env.exists() else _pkg_env)
+
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", "8040"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
+
 # Tentativa de importar os módulos do transpilador core
 try:
     from .transpiler.python_to_ast import PythonToAST
@@ -163,7 +175,7 @@ def main():
     elif args.command == "dev" or args.command == "serve":
         import uvicorn
         from .server import app
-        uvicorn.run(app, host="0.0.0.0", port=8040)
+        uvicorn.run(app, host=API_HOST, port=API_PORT, log_level=LOG_LEVEL.lower())
     elif args.command == "transpile":
         process_transpile(Path(args.input), Path(args.output) if args.output else Path("dist"), args.direction)
     else:

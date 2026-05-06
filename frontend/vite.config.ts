@@ -7,5 +7,12 @@ export default defineConfig({
   server: {
     port: 8041,
     host: '0.0.0.0',
+    allowedHosts: ['pyadvpl.apps.tec.br'],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8040',
+        changeOrigin: true,
+      },
+    },
   },
 })

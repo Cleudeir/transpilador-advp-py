@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { 
-  CheckCircle2, Rocket, Copy, RefreshCcw, 
-  GitFork, ExternalLink, AlertCircle, 
-  Upload, Download, FileCode, Cpu,
+  Rocket, Copy, RefreshCcw, 
+  GitFork, AlertCircle, 
+  Upload, Download, Cpu,
   Code2, Zap, Layout
 } from 'lucide-react';
 
-const API_URL = 'http://localhost:8040/api';
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 // ── Capabilities Data ──────────────────────────────────────────────────────────
 const CAPABILITIES = [
