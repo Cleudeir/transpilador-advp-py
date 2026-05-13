@@ -268,6 +268,7 @@ cd frontend && npm install && cd ..
 - [x] Chamadas de métodos e funções com argumentos posicionais
 - [x] Nós de pré-processador (`#include`, `#define`)
 - [x] Comentários preservados na saída
+- [x] Suporte completo a classes ADVPL (`CLASS`/`METHOD`/`ENDCLASS`)
 
 #### Transpilação ADVPL → Python
 
@@ -288,7 +289,7 @@ cd frontend && npm install && cd ..
 
 #### Testes
 
-- [x] Suite de +550 exemplos `.prw` cobrindo operadores, funções e classes do Protheus
+- [x] Suite de +558 exemplos `.prw` cobrindo operadores, funções e classes do Protheus
 - [x] Testes de round-trip em lote (`test_roundtrip_bulk.py`)
 - [x] Script `debug_precision.py` para diagnóstico de desvios
 
@@ -298,7 +299,6 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 
 #### Transpilador
 
-- 🎯 Suporte completo a classes ADVPL (`CLASS`/`METHOD`/`ENDCLASS`) na geração Python → ADVPL
 - 🎯 Suporte a `BEGIN SEQUENCE` / `RECOVER SEQUENCE` (equivalente ao `try/except`)
 - 🎯 Suporte a `BEGIN TRANSACTION` / `END TRANSACTION`
 - 🎯 Suporte ao comando `TCQUERY` / `BeginSQL`/`EndSQL`

@@ -2,7 +2,8 @@ from .parser import (
     ASTNode, Program, FunctionDeclaration, VariableDeclaration, Literal, 
     RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, 
     BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode,
-    ForLoop, MethodCall, AliasAccess, AssignmentExpression, UnaryExpression
+    ForLoop, MethodCall, AliasAccess, AssignmentExpression, UnaryExpression,
+    ClassDeclaration, MethodDeclaration
 )
 
 class ADVPLGenerator:
@@ -68,6 +69,70 @@ class ADVPLGenerator:
                         result += f"{self._indent()}{res}\n"
                 if not any(isinstance(s, FunctionCall) and s.name == "RETURN" for s in node.body):
                     result += f"{self._indent()}RETURN Nil\n"
+            self.indent_level -= 1
+            return result
+        
+        elif isinstance(node, ClassDeclaration):
+            result = f"CLASS {node.name}\n"
+            self.indent_level += 1
+            
+            for data in node.data:
+                result += f"{self._indent()}DATA {data}\n"
+            
+            if node.data:
+                result += "\n"
+                
+            for method in node.methods:
+                result += f"{self._indent()}METHOD {method}()\n"
+                
+            self.indent_level -= 1
+            result += "ENDCLASS\n"
+            return result
+        
+        elif isinstance(node, MethodDeclaration):
+            params_str = f"({', '.join(node.params)})" if node.params else "()"
+            result = f"METHOD {node.name}{params_str} CLASS {node.class_name}\n"
+            self.indent_level += 1
+            
+            locals_ = []
+            def find_locals(nodes):
+                for n in nodes:
+                    if isinstance(n, (AssignmentExpression, VariableDeclaration)):
+                        target = n.target if isinstance(n, AssignmentExpression) else n.name
+                        if isinstance(target, Literal) and target.type == "VARIABLE":
+                            v = target.value
+                            if v not in locals_: locals_.append(v)
+                        elif isinstance(target, str):
+                            if target not in locals_: locals_.append(target)
+                    if hasattr(n, 'body') and isinstance(n.body, list): find_locals(n.body)
+                    if hasattr(n, 'then_body') and isinstance(n.then_body, list): find_locals(n.then_body)
+                    if hasattr(n, 'else_body') and isinstance(n.else_body, list): find_locals(n.else_body)
+            
+            find_locals(node.body)
+            params_set = set(node.params) if node.params else set()
+            locals_ = [l for l in locals_ if l.upper() not in params_set and l.upper() not in ("SELF", "NIL")]
+            
+            if locals_:
+                result += f"{self._indent()}LOCAL {', '.join(locals_)}\n\n"
+            
+            if not node.body:
+                if node.name == "New":
+                    result += f"{self._indent()}RETURN self\n"
+                else:
+                    result += f"{self._indent()}RETURN Nil\n"
+            else:
+                for stmt in node.body:
+                    res = self._generate_node(stmt)
+                    if res:
+                        result += f"{self._indent()}{res}\n"
+                
+                has_return = any(isinstance(s, FunctionCall) and s.name == "RETURN" for s in node.body)
+                if not has_return:
+                    if node.name == "New":
+                        result += f"{self._indent()}RETURN self\n"
+                    else:
+                        result += f"{self._indent()}RETURN Nil\n"
+            
             self.indent_level -= 1
             return result
         
@@ -168,6 +233,7 @@ class ADVPLGenerator:
         elif isinstance(node, AliasAccess):
             alias = self._generate_node(node.alias)
             field = self._generate_node(node.field)
+            if alias.upper() == "SELF": return f"::{field}"
             if isinstance(node.field, FunctionCall):
                 return f"{alias}->( {field} )"
             return f"{alias}->{field}"

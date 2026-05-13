@@ -120,6 +120,12 @@ class MethodDeclaration(ASTNode):
     is_user: bool = False
 
 @dataclass
+class ClassDeclaration(ASTNode):
+    name: str
+    data: List[str]
+    methods: List[str]
+
+@dataclass
 class CodeBlock(ASTNode):
     params: List[str]
     expression: ASTNode

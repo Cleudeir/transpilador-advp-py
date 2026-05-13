@@ -5,7 +5,8 @@ from .parser import (
     ASTNode, Program, FunctionDeclaration, VariableDeclaration, Literal, 
     IfStatement, WhileLoop, FunctionCall, BinaryExpression, CommentNode,
     ArrayLiteral, ArrayAccess, MethodCall, AliasAccess, ForLoop, 
-    AssignmentExpression, RawNode, CodeBlock, UnaryExpression, PreprocessorNode
+    AssignmentExpression, RawNode, CodeBlock, UnaryExpression, PreprocessorNode,
+    ClassDeclaration, MethodDeclaration
 )
 
 class PythonToAST:
@@ -74,6 +75,41 @@ class PythonToAST:
                 is_static = True
             
             return FunctionDeclaration(name, body, params=params, is_user=is_user, is_static=is_static)
+
+        elif isinstance(node, ast.ClassDef):
+            class_name = node.name
+            data_members = []
+            methods = []
+            method_decls = []
+            
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef):
+                    method_name = item.name
+                    if method_name == "__init__":
+                        method_name = "New"
+                    
+                    methods.append(method_name)
+                    
+                    # Scan for self.attr assignments
+                    for stmt in item.body:
+                        if isinstance(stmt, ast.Assign):
+                            for target in stmt.targets:
+                                if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == "self":
+                                    if target.attr not in data_members:
+                                        data_members.append(target.attr)
+                    
+                    params = [arg.arg for arg in item.args.args if arg.arg != "self"]
+                    body = []
+                    for s in item.body:
+                        t = self._translate_node(s)
+                        if t:
+                            if isinstance(t, list): body.extend(t)
+                            else: body.append(t)
+                    
+                    method_decls.append(MethodDeclaration(method_name, class_name, params, body))
+            
+            class_decl = ClassDeclaration(class_name, data_members, methods)
+            return [class_decl] + method_decls
 
         elif isinstance(node, ast.If):
             condition = self._translate_expression(node.test)
