@@ -87,6 +87,10 @@ class Lexer:
         'DO': 'DO',
         'BEGINSQL': 'BEGINSQL',
         'ENDSQL': 'ENDSQL',
+        'BEGIN': 'BEGIN',
+        'SEQUENCE': 'SEQUENCE',
+        'RECOVER': 'RECOVER',
+        'ENDSEQUENCE': 'ENDSEQUENCE',
     }
 
     def __init__(self, code: str):

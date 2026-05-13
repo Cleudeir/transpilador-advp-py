@@ -131,6 +131,12 @@ class CodeBlock(ASTNode):
     expression: ASTNode
 
 @dataclass
+class TryStatement(ASTNode):
+    body: List[ASTNode]
+    recover_body: List[ASTNode]
+    error_var: str = None
+
+@dataclass
 class LoopControl(ASTNode):
     type: str # EXIT or LOOP/CONTINUE
 
@@ -228,6 +234,9 @@ class ADVPLParser:
         elif token.type == 'METHOD':
             self.consume('METHOD')
             return self.parse_method_declaration()
+        elif token.type == 'BEGIN':
+            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].type == 'SEQUENCE':
+                return self.parse_try_statement()
         elif token.type == 'IF':
             return self.parse_if_statement()
         elif token.type == 'DO':
@@ -667,6 +676,39 @@ class ADVPLParser:
             if self.current_token().type == 'IDENTIFIER' and self.current_token().line == next_token.line:
                 self.consume('IDENTIFIER')
         return ForLoop(target_name, start_val if 'start_val' in locals() else target_expr.value if isinstance(target_expr, VariableDeclaration) else Literal("0", "NUMBER"), limit, body)
+
+    def parse_try_statement(self) -> ASTNode:
+        self.consume('BEGIN')
+        self.consume('SEQUENCE')
+        
+        body = []
+        while self.current_token().type not in ('EOF', 'RECOVER', 'ENDSEQUENCE'):
+            if self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'END':
+                if self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].type == 'SEQUENCE':
+                    break
+            body.append(self.parse_statement())
+            
+        recover_body = []
+        error_var = None
+        if self.current_token().type == 'RECOVER':
+            self.consume('RECOVER')
+            if self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'USING':
+                self.consume('IDENTIFIER')
+                error_var = self.consume('IDENTIFIER').value
+                
+            while self.current_token().type not in ('EOF', 'ENDSEQUENCE'):
+                if self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'END':
+                    if self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].type == 'SEQUENCE':
+                        break
+                recover_body.append(self.parse_statement())
+                
+        if self.current_token().type == 'ENDSEQUENCE':
+            self.consume('ENDSEQUENCE')
+        elif self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'END':
+            self.consume('IDENTIFIER')
+            self.consume('SEQUENCE')
+            
+        return TryStatement(body, recover_body, error_var)
 
     def parse_function_declaration(self, is_user=False, is_static=False) -> FunctionDeclaration:
         name_token = self.consume('IDENTIFIER')

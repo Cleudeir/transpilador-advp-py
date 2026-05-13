@@ -1,5 +1,5 @@
 import keyword
-from .parser import ASTNode, Program, FunctionDeclaration, VariableDeclaration, Literal, RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode, MethodCall, Macro, AliasAccess, MethodDeclaration, UnaryExpression, CodeBlock, MultiVariableDeclaration, DoCase, CaseBranch, LoopControl, AssignmentExpression
+from .parser import ASTNode, Program, FunctionDeclaration, VariableDeclaration, Literal, RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode, MethodCall, Macro, AliasAccess, MethodDeclaration, UnaryExpression, CodeBlock, MultiVariableDeclaration, DoCase, CaseBranch, LoopControl, AssignmentExpression, TryStatement
 
 class PythonGenerator:
     def __init__(self, ast: Program):
@@ -176,6 +176,39 @@ class PythonGenerator:
                     if not has_else:
                         result += f"{self._indent()}pass\n"
                     self.indent_level -= 1
+            return result
+
+        elif isinstance(node, TryStatement):
+            result = "try:\n"
+            self.indent_level += 1
+            has_body = False
+            for stmt in node.body:
+                res = self._generate_node(stmt)
+                if res and res.strip():
+                    result += f"{self._indent()}{res}\n"
+                    if not res.strip().startswith("#"):
+                        has_body = True
+            if not has_body:
+                result += f"{self._indent()}pass\n"
+            self.indent_level -= 1
+            
+            result += f"{self._indent()}except Exception"
+            if node.error_var:
+                result += f" as {self._sanitize(node.error_var)}"
+            result += ":\n"
+            
+            self.indent_level += 1
+            has_recover = False
+            for stmt in node.recover_body:
+                res = self._generate_node(stmt)
+                if res and res.strip():
+                    result += f"{self._indent()}{res}\n"
+                    if not res.strip().startswith("#"):
+                        has_recover = True
+            if not has_recover:
+                result += f"{self._indent()}pass\n"
+            self.indent_level -= 1
+            
             return result
 
         elif isinstance(node, DoCase):

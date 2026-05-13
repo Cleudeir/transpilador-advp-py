@@ -3,7 +3,7 @@ from .parser import (
     RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, 
     BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode,
     ForLoop, MethodCall, AliasAccess, AssignmentExpression, UnaryExpression,
-    ClassDeclaration, MethodDeclaration
+    ClassDeclaration, MethodDeclaration, TryStatement
 )
 
 class ADVPLGenerator:
@@ -180,6 +180,28 @@ class ADVPLGenerator:
                 self.indent_level -= 1
             
             result += f"{self._indent()}EndIf"
+            return result
+
+        elif isinstance(node, TryStatement):
+            result = "BEGIN SEQUENCE\n"
+            self.indent_level += 1
+            for stmt in node.body:
+                res = self._generate_node(stmt)
+                if res: result += f"{self._indent()}{res}\n"
+            self.indent_level -= 1
+            
+            if node.recover_body:
+                recover_str = "RECOVER"
+                if node.error_var:
+                    recover_str += f" USING {node.error_var}"
+                result += f"{self._indent()}{recover_str}\n"
+                self.indent_level += 1
+                for stmt in node.recover_body:
+                    res = self._generate_node(stmt)
+                    if res: result += f"{self._indent()}{res}\n"
+                self.indent_level -= 1
+                
+            result += f"{self._indent()}END SEQUENCE"
             return result
 
         elif isinstance(node, WhileLoop):

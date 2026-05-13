@@ -251,7 +251,7 @@ cd frontend && npm install && cd ..
 | `pyadvpl/engine/cli.py`                         | CLI (`init`, `build`, `convert`, `dev`)                                                    |
 | `pyadvpl/engine/server.py`                      | API FastAPI                                                                                |
 | `frontend/`                                     | Dashboard React/Vite                                                                       |
-| `pyadvpl/engine/transpiler/tests/input/`        | +550 exemplos `.prw` de referência                                                         |
+| `pyadvpl/engine/transpiler/tests/input/`        | +559 exemplos `.prw` de referência                                                         |
 | `pyadvpl/engine/transpiler/tests/output/`       | Saídas esperadas para os exemplos acima                                                    |
 
 ### 4. O Que Já Está Implementado
@@ -269,12 +269,14 @@ cd frontend && npm install && cd ..
 - [x] Nós de pré-processador (`#include`, `#define`)
 - [x] Comentários preservados na saída
 - [x] Suporte completo a classes ADVPL (`CLASS`/`METHOD`/`ENDCLASS`)
+- [x] Suporte a `BEGIN SEQUENCE` / `RECOVER SEQUENCE` (equivalente ao `try/except`)
 
 #### Transpilação ADVPL → Python
 
 - [x] Lexer com todos os operadores específicos do ADVPL (`$`, `&`, `::`, `:=`, `@`, `%`)
 - [x] Parser para as estruturas de controle principais
 - [x] Gerador Python com mapeamento de tipos e funções
+- [x] Suporte a `BEGIN SEQUENCE` / `RECOVER SEQUENCE` (equivalente ao `try/except`)
 
 #### Biblioteca de Stubs (`pyadvpl/engine/core/`)
 
@@ -289,7 +291,7 @@ cd frontend && npm install && cd ..
 
 #### Testes
 
-- [x] Suite de +558 exemplos `.prw` cobrindo operadores, funções e classes do Protheus
+- [x] Suite de +559 exemplos `.prw` cobrindo operadores, funções e classes do Protheus
 - [x] Testes de round-trip em lote (`test_roundtrip_bulk.py`)
 - [x] Script `debug_precision.py` para diagnóstico de desvios
 
@@ -299,7 +301,6 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 
 #### Transpilador
 
-- 🎯 Suporte a `BEGIN SEQUENCE` / `RECOVER SEQUENCE` (equivalente ao `try/except`)
 - 🎯 Suporte a `BEGIN TRANSACTION` / `END TRANSACTION`
 - 🎯 Suporte ao comando `TCQUERY` / `BeginSQL`/`EndSQL`
 - 🎯 Geração correta de `PRIVATE` e `PUBLIC` além de `LOCAL`

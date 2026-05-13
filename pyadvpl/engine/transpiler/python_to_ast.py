@@ -6,7 +6,7 @@ from .parser import (
     IfStatement, WhileLoop, FunctionCall, BinaryExpression, CommentNode,
     ArrayLiteral, ArrayAccess, MethodCall, AliasAccess, ForLoop, 
     AssignmentExpression, RawNode, CodeBlock, UnaryExpression, PreprocessorNode,
-    ClassDeclaration, MethodDeclaration
+    ClassDeclaration, MethodDeclaration, TryStatement
 )
 
 class PythonToAST:
@@ -155,6 +155,28 @@ class PythonToAST:
                         else: body.append(t)
                 return ForLoop(target_name, start, end, body)
 
+        elif isinstance(node, ast.Try):
+            body = []
+            for s in node.body:
+                t = self._translate_node(s)
+                if t:
+                    if isinstance(t, list): body.extend(t)
+                    else: body.append(t)
+                    
+            recover_body = []
+            error_var = None
+            if node.handlers:
+                handler = node.handlers[0]
+                if handler.name:
+                    error_var = handler.name
+                for s in handler.body:
+                    t = self._translate_node(s)
+                    if t:
+                        if isinstance(t, list): recover_body.extend(t)
+                        else: recover_body.append(t)
+                        
+            return TryStatement(body, recover_body, error_var)
+            
         elif isinstance(node, ast.Expr):
             if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == "_advpl_comment_":
                 if node.value.args and isinstance(node.value.args[0], ast.Constant):
