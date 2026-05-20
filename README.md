@@ -377,7 +377,6 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 #### Biblioteca de Stubs
 
 - 🎯 Stubs de integração XML (`XmlParser`, `XmlNode2Arr`, `JSONObject`)
-- 🎯 Stubs de integração XML (`XmlParser`, `XmlNode2Arr`, `JSONObject`)
 - 💡 Adicionar type hints completos e docstrings a todos os stubs existentes
 - 💡 Suporte a `TCSqlToArr` e funções de consulta SQL via stub
 
