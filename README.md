@@ -344,11 +344,15 @@ cd frontend && npm install && cd ..
 - [x] `db` — SQL nativo (`BeginSQL`, `EndSQL`, `sql_eof`, `sql_skip`, `sql_close`)
 - [x] `db` — funções SQL (`TCSqlExec`, `TCSQLError`, `TCSQLQuery`, `TCSQLPlan`, `RetSQLName`, `RetSQLCond`, `FormatIn`, `ValToSQL`)
 - [x] `ui` — diálogos e mensagens (MsgAlert, MsgYesNo, MsgInfo, etc.)
+- [x] `ui` — FWDialogModal (janela de diálogo modal personalizável)
+- [x] `ui` — MsNewProcess (processo com barra de progresso / réguas)
 - [x] `string` — manipulação de strings (AllTrim, SubStr, Upper, Lower, etc.)
 - [x] `math` — funções matemáticas (Abs, Round, Int, Sqrt, etc.)
 - [x] `date` — funções de data (Date, CToD, DToC, Month, Year, etc.)
 - [x] `array` — funções de array (AAdd, ADel, ASize, ASort, AScan, etc.)
 - [x] `protheus` — funções do framework (GetMV, SuperGetMV, Posicione, etc.)
+- [x] `protheus` — classes de browse (`FWBrowse`, `FWBrwColumn`, `FWMBrowse`, `FWMarkBrowse`, `FWTemporaryTable`)
+- [x] `protheus` — classes de modelo e relatório (`oModel`, `oReport`, `oSection`)
 - [x] `types` — tipos base (`Nil`, `Array`, `Date`)
 
 #### Testes
@@ -370,7 +374,6 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 
 #### Biblioteca de Stubs
 
-- 🎯 Implementar stubs das classes FWBrowse, FWmBrowse, FWDialogModal, MsNewProcess
 - 🎯 Completar stubs de funções REST (`FWRest`, `HttpGet`, `HttpPost`)
 - 🎯 Stubs de integração XML (`XmlParser`, `XmlNode2Arr`, `JSONObject`)
 - 💡 Adicionar type hints completos e docstrings a todos os stubs existentes

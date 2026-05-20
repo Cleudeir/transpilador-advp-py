@@ -12,4 +12,9 @@ from .core import (
 # Convenience direct exports
 from .core.types import Nil, Date, Array
 from .core.db import Table
-from .core.ui import MsgAlert
+from .core.ui import MsgAlert, MsNewProcess, FWDialogModal
+from .core.protheus import (
+    FWBrowse, FWBrwColumn, FWTemporaryTable,
+    FWMBrowse, FWMarkBrowse,
+    oModel, oReport, oSection
+)
