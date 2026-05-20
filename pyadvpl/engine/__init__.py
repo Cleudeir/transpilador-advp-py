@@ -6,7 +6,8 @@ from .core import (
     protheus,
     string,
     types,
-    ui
+    ui,
+    xml_json
 )
 
 # Convenience direct exports
@@ -18,4 +19,10 @@ from .core.protheus import (
     FWMBrowse, FWMarkBrowse,
     FWRest,
     oModel, oReport, oSection
+)
+from .core.xml_json import (
+    XmlParser, XmlParserFile, XmlNode, XmlNode2Arr, XmlToArr,
+    IsXmlNode, AttIsMemberOf, XMLChildEx, XmlNodeExist, WSAdvValue,
+    JsonObject, ArrToJson, JsonToArr,
+    TXMLViewer
 )

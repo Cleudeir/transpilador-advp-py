@@ -6,3 +6,4 @@ from . import protheus
 from . import string
 from . import types
 from . import ui
+from . import xml_json
