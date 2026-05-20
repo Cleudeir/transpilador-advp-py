@@ -18,6 +18,10 @@ O **pyadvpl** é um framework de desenvolvimento moderno que permite escrever c�
 - **🛠️ Auto-Declaração**: O framework detecta suas variáveis e as declara como `LOCAL`, `PRIVATE` ou `PUBLIC` automaticamente no ADVPL gerado.
 - **🔒 Transações**: Suporte completo a `BEGIN TRANSACTION` / `END TRANSACTION` via context manager `Transaction()`.
 - **🗄️ SQL Nativo**: Suporte a `BeginSQL` / `EndSQL` com `COLUMN` via context manager `BeginSQL()`.
+- **📋 Browse**: Stubs completos para `FWBrowse`, `FWMBrowse`, `FWBrwColumn`, `FWMarkBrowse`, `FWTemporaryTable`.
+- **🖥️ Janelas**: `FWDialogModal` para diálogos modais e `MsNewProcess` para processos com barra de progresso.
+- **🌐 REST/HTTP**: Cliente `FWRest` e funções `HttpGet`, `HttpPost`, `HttpPut`, `HttpDelete`.
+- **📄 XML/JSON**: Parsers `XmlParser`, `JsonObject` e funções de conversão `ArrToJson`, `XmlNode2Arr`.
 
 ---
 
@@ -180,6 +184,7 @@ _Acesse o link gerado (ex: `http://localhost:5173`) para usar a interface._
 - **`pyadvpl/engine/`**: O motor principal (Lexer, Parser, Code Generator).
 - **`pyadvpl/engine/server.py`**: API FastAPI que serve o motor de transpilação.
 - **`pyadvpl/engine/cli.py`**: Interface de comando para automação.
+- **`pyadvpl/engine/core/`**: Biblioteca de stubs (db, ui, string, math, date, array, protheus, types, xml_json).
 - **`frontend/`**: Aplicação React/Vite para visualização em tempo real.
 
 ---
@@ -195,6 +200,10 @@ _Acesse o link gerado (ex: `http://localhost:5173`) para usar a interface._
 | **Variáveis**      | `LOCAL`, `PRIVATE`, `PUBLIC` | Declarações preservadas  |
 | **Transações**     | `with Transaction():`      | `Begin Transaction ... End Transaction` |
 | **SQL Nativo**     | `with BeginSQL(alias="Q") as sql:` | `BeginSql Alias "Q" ... EndSql` |
+| **Browse**         | `FWBrowse().New()`, `oBrowse:Get(aHeaders)` | `FWBrowse():New()`, `oBrowse:Get(aHeaders)` |
+| **REST Client**    | `FWRest().New(url)`, `oRest:Get(aHeaders)` | `FWRest():New(url)`, `oRest:Get(aHeaders)` |
+| **XML Parser**     | `XmlParser(cXml, "_")` | `XmlParser(cXML, "_")` |
+| **JSON**           | `JsonObject().New()`, `jDados:FromJson(cJson)` | `JsonObject():New()`, `jDados:FromJson(cJson)` |
 
 ---
 
@@ -243,6 +252,91 @@ def u_ExemploVariaveis():
     
     # LOCAL: visível apenas nesta função (declarado automaticamente)
     lSucesso = True
+```
+
+### Navegação com Browse (FWBrowse / FWMBrowse)
+
+```python
+from pyadvpl import protheus
+
+def u_ExemploBrowse():
+    oBrowse = protheus.FWBrowse().New()
+    oBrowse.SetAlias("SA1")
+    oBrowse.AddColumn("Código", lambda o: SA1.A1_COD, "C", 6, 0)
+    oBrowse.AddColumn("Nome", lambda o: SA1.A1_NOME, "C", 30, 0)
+    oBrowse.AddLegend("SA1->A1_MSBLQL == '1'", "RED", "Bloqueado")
+    oBrowse.Activate()
+```
+
+### Diálogo Modal (FWDialogModal)
+
+```python
+from pyadvpl import ui
+
+def u_ExemploDialog():
+    oDlg = ui.FWDialogModal().New()
+    oDlg.SetTitle("Cadastro")
+    oDlg.SetSize(300, 400)
+    oDlg.AddButton("Confirmar", lambda o: oDlg.DeActivate())
+    oDlg.Activate()
+```
+
+### Processo com Barra de Progresso (MsNewProcess)
+
+```python
+from pyadvpl import ui
+
+def u_ExemploProcesso():
+    def processar(lEnd):
+        for i in range(100):
+            if lEnd:
+                break
+            oProcess.IncRegs()
+            oProcess.SetText(f"Processando item {i}")
+    
+    oProcess = ui.MsNewProcess().New(processar, "Processando", "Aguarde...", True)
+    oProcess.Activate()
+```
+
+### Consumo de REST (FWRest / HttpGet)
+
+```python
+from pyadvpl import protheus
+
+def u_ExemploRest():
+    oRest = protheus.FWRest().New("https://viacep.com.br/ws")
+    oRest.SetPath("/17054679/json/")
+    if oRest.Get(["Content-Type: application/json"]):
+        resultado = oRest.cResult
+
+    # Ou use a função direta:
+    resultado = protheus.HttpGet("https://viacep.com.br/ws/17054679/json/")
+```
+
+### Parse de XML (XmlParser)
+
+```python
+from pyadvpl import xml_json
+
+def u_ExemploXML():
+    cXML = "<detalhes><nome>Atilio</nome><idade>29</idade></detalhes>"
+    oXML = xml_json.XmlParser(cXML, "_")
+    if oXML:
+        nome = oXML._detalhes._nome.TEXT
+```
+
+### Manipulação de JSON (JsonObject)
+
+```python
+from pyadvpl import xml_json
+
+def u_ExemploJSON():
+    jDados = xml_json.JsonObject().New()
+    cError = jDados.FromJson('{"nome":"Atilio", "idade":29}')
+    if not cError:
+        nome = jDados.GetJsonObject("nome")
+        jDados["novoCampo"] = "valor"
+        json_str = jDados.toJSON()
 ```
 
 ---
@@ -300,7 +394,7 @@ cd frontend && npm install && cd ..
 | `pyadvpl/engine/transpiler/advpl_generator.py`  | AST → código ADVPL                                                                         |
 | `pyadvpl/engine/transpiler/python_generator.py` | AST → código Python                                                                        |
 | `pyadvpl/engine/transpiler/python_to_ast.py`    | Código Python → AST interna                                                                |
-| `pyadvpl/engine/core/`                          | Stubs das funções nativas do Protheus (db, ui, string, math, date, array, protheus, types) |
+| `pyadvpl/engine/core/`                          | Stubs das funções nativas do Protheus (db, ui, string, math, date, array, protheus, types, xml_json) |
 | `pyadvpl/engine/cli.py`                         | CLI (`init`, `build`, `convert`, `dev`)                                                    |
 | `pyadvpl/engine/server.py`                      | API FastAPI                                                                                |
 | `frontend/`                                     | Dashboard React/Vite                                                                       |
