@@ -91,6 +91,9 @@ class Lexer:
         'SEQUENCE': 'SEQUENCE',
         'RECOVER': 'RECOVER',
         'ENDSEQUENCE': 'ENDSEQUENCE',
+        'TRANSACTION': 'TRANSACTION',
+        'COLUMN': 'COLUMN',
+        'AS': 'AS',
     }
 
     def __init__(self, code: str):

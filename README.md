@@ -15,7 +15,9 @@ O **pyadvpl** é um framework de desenvolvimento moderno que permite escrever c�
 - **🔄 Transpilação Inteligente**: Mapeia automaticamente classes `Table` para acesso via Alias (`SA1->A1_NOME`).
 - **⚡ CLI Integrada**: Comandos simplificados como `build`, `convert` e `dev`.
 - **🖥️ Dashboard Web**: Interface moderna em React para transpilação em tempo real.
-- **🛠️ Auto-Declaração**: O framework detecta suas variáveis e as declara como `LOCAL` automaticamente no ADVPL gerado.
+- **🛠️ Auto-Declaração**: O framework detecta suas variáveis e as declara como `LOCAL`, `PRIVATE` ou `PUBLIC` automaticamente no ADVPL gerado.
+- **🔒 Transações**: Suporte completo a `BEGIN TRANSACTION` / `END TRANSACTION` via context manager `Transaction()`.
+- **🗄️ SQL Nativo**: Suporte a `BeginSQL` / `EndSQL` com `COLUMN` via context manager `BeginSQL()`.
 
 ---
 
@@ -190,7 +192,58 @@ _Acesse o link gerado (ex: `http://localhost:5173`) para usar a interface._
 | **Navegação**      | `SA1.go_top()`             | `SA1->( DbGoTop() )`       |
 | **Mensagens**      | `ui.MsgAlert("Oi")`        | `MsgAlert("Oi")`           |
 | **Loops**          | `for i in range(1, 11)`    | `For nI := 1 To 10`        |
-| **Variáveis**      | Globais/Locais automáticas | `LOCAL` declaradas no topo |
+| **Variáveis**      | `LOCAL`, `PRIVATE`, `PUBLIC` | Declarações preservadas  |
+| **Transações**     | `with Transaction():`      | `Begin Transaction ... End Transaction` |
+| **SQL Nativo**     | `with BeginSQL(alias="Q") as sql:` | `BeginSql Alias "Q" ... EndSql` |
+
+---
+
+## 📝 Exemplos de Uso
+
+### Transações (BEGIN TRANSACTION / END TRANSACTION)
+
+```python
+from pyadvpl import db
+
+def u_AtualizaClientes():
+    with db.Transaction():
+        SA1 = db.Table("SA1")
+        SA1.rec_lock(True)
+        SA1.A1_NOME = "Novo Nome"
+        SA1.unlock()
+```
+
+### SQL Nativo (BeginSQL / EndSQL)
+
+```python
+from pyadvpl import db
+
+def u_ConsultaClientes():
+    nRegs = 0
+    with db.BeginSQL(alias="SQL_SA1") as sql:
+        sql.column("A1_COD", "CHAR")
+        sql.column("A1_NOME", "CHAR")
+        sql.query("SELECT A1_COD, A1_NOME FROM SA1 WHERE SA1.D_E_L_E_T_ = ' '")
+        
+        while not db.sql_eof():
+            nRegs += 1
+            print(sql.A1_NOME)
+            db.sql_skip()
+```
+
+### Variáveis PRIVATE e PUBLIC
+
+```python
+def u_ExemploVariaveis():
+    # PRIVATE: visível na função e em funções chamadas
+    private cMsgLog = ""
+    
+    # PUBLIC: visível globalmente em todo o programa
+    public nTotalRegistros = 0
+    
+    # LOCAL: visível apenas nesta função (declarado automaticamente)
+    lSucesso = True
+```
 
 ---
 
@@ -251,7 +304,7 @@ cd frontend && npm install && cd ..
 | `pyadvpl/engine/cli.py`                         | CLI (`init`, `build`, `convert`, `dev`)                                                    |
 | `pyadvpl/engine/server.py`                      | API FastAPI                                                                                |
 | `frontend/`                                     | Dashboard React/Vite                                                                       |
-| `pyadvpl/engine/transpiler/tests/input/`        | +559 exemplos `.prw` de referência                                                         |
+| `pyadvpl/engine/transpiler/tests/input/`        | +560 exemplos `.prw` de referência                                                         |
 | `pyadvpl/engine/transpiler/tests/output/`       | Saídas esperadas para os exemplos acima                                                    |
 
 ### 4. O Que Já Está Implementado
@@ -259,6 +312,7 @@ cd frontend && npm install && cd ..
 #### Transpilação Python → ADVPL
 
 - [x] Declaração automática de variáveis `LOCAL` no topo da função
+- [x] Geração correta de `PRIVATE` e `PUBLIC` além de `LOCAL`
 - [x] Mapeamento de acesso a campos (`SA1.A1_NOME` → `SA1->A1_NOME`)
 - [x] Mapeamento de métodos de navegação (`sa1.go_top()` → `SA1->( DbGoTop() )`)
 - [x] Funções com prefixo `u_`, `static` e `function`
@@ -270,6 +324,8 @@ cd frontend && npm install && cd ..
 - [x] Comentários preservados na saída
 - [x] Suporte completo a classes ADVPL (`CLASS`/`METHOD`/`ENDCLASS`)
 - [x] Suporte a `BEGIN SEQUENCE` / `RECOVER SEQUENCE` (equivalente ao `try/except`)
+- [x] Suporte a `BEGIN TRANSACTION` / `END TRANSACTION` (context manager `Transaction()`)
+- [x] Suporte a `BeginSQL` / `EndSQL` (context manager `BeginSQL()`)
 
 #### Transpilação ADVPL → Python
 
@@ -277,10 +333,16 @@ cd frontend && npm install && cd ..
 - [x] Parser para as estruturas de controle principais
 - [x] Gerador Python com mapeamento de tipos e funções
 - [x] Suporte a `BEGIN SEQUENCE` / `RECOVER SEQUENCE` (equivalente ao `try/except`)
+- [x] Suporte a `BEGIN TRANSACTION` / `END TRANSACTION` (`with Transaction():`)
+- [x] Suporte a `BeginSQL` / `EndSQL` com `COLUMN` (`with BeginSQL(alias="...") as sql:`)
+- [x] Preservação de modificadores `PRIVATE` e `PUBLIC` na AST
 
 #### Biblioteca de Stubs (`pyadvpl/engine/core/`)
 
 - [x] `db` — funções de banco de dados (DbGoTop, DbSeek, DbUseArea, etc.)
+- [x] `db` — controle de transações (`Transaction`, `DisarmTransaction`)
+- [x] `db` — SQL nativo (`BeginSQL`, `EndSQL`, `sql_eof`, `sql_skip`, `sql_close`)
+- [x] `db` — funções SQL (`TCSqlExec`, `TCSQLError`, `TCSQLQuery`, `TCSQLPlan`, `RetSQLName`, `RetSQLCond`, `FormatIn`, `ValToSQL`)
 - [x] `ui` — diálogos e mensagens (MsgAlert, MsgYesNo, MsgInfo, etc.)
 - [x] `string` — manipulação de strings (AllTrim, SubStr, Upper, Lower, etc.)
 - [x] `math` — funções matemáticas (Abs, Round, Int, Sqrt, etc.)
@@ -291,7 +353,7 @@ cd frontend && npm install && cd ..
 
 #### Testes
 
-- [x] Suite de +559 exemplos `.prw` cobrindo operadores, funções e classes do Protheus
+- [x] Suite de +560 exemplos `.prw` cobrindo operadores, funções, classes, transações e SQL do Protheus
 - [x] Testes de round-trip em lote (`test_roundtrip_bulk.py`)
 - [x] Script `debug_precision.py` para diagnóstico de desvios
 
@@ -301,12 +363,10 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 
 #### Transpilador
 
-- 🎯 Suporte a `BEGIN TRANSACTION` / `END TRANSACTION`
-- 🎯 Suporte ao comando `TCQUERY` / `BeginSQL`/`EndSQL`
-- 🎯 Geração correta de `PRIVATE` e `PUBLIC` além de `LOCAL`
 - 💡 Suporte a codeblocks ADVPL (`{ |x| expr }`) mapeados para lambdas Python
 - 💡 Suporte a `#IFDEF` / `#IFNDEF` no pré-processador
 - 💡 Preservação de comentários de documentação (`//` e `/* */`) no round-trip
+- 💡 Suporte a `STEP` em loops `FOR`
 
 #### Biblioteca de Stubs
 
@@ -335,7 +395,7 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 - Linguagem dos comentários e docstrings: **Português Brasileiro**
 - Estilo: segue `PEP 8`; use `ruff` para lint
 - Novos stubs devem seguir o padrão de `pyadvpl/engine/core/db.py`: função com `pass` e docstring descrevendo o equivalente ADVPL
-- Testes novos devem incluir o par `input/*.prw` + `output/*.py` correspondente
+- Novos testes devem incluir apenas o arquivo `input/*.prw`; o `output/*.py` é gerado automaticamente
 
 ---
 

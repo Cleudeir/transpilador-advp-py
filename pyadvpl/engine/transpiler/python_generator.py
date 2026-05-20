@@ -1,5 +1,5 @@
 import keyword
-from .parser import ASTNode, Program, FunctionDeclaration, VariableDeclaration, Literal, RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode, MethodCall, Macro, AliasAccess, MethodDeclaration, UnaryExpression, CodeBlock, MultiVariableDeclaration, DoCase, CaseBranch, LoopControl, AssignmentExpression, TryStatement
+from .parser import ASTNode, Program, FunctionDeclaration, VariableDeclaration, Literal, RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode, MethodCall, Macro, AliasAccess, MethodDeclaration, UnaryExpression, CodeBlock, MultiVariableDeclaration, DoCase, CaseBranch, LoopControl, AssignmentExpression, TryStatement, TransactionStatement, SQLBlock
 
 class PythonGenerator:
     def __init__(self, ast: Program):
@@ -209,6 +209,47 @@ class PythonGenerator:
                 result += f"{self._indent()}pass\n"
             self.indent_level -= 1
             
+            return result
+
+        elif isinstance(node, TransactionStatement):
+            result = "with Transaction():\n"
+            self.indent_level += 1
+            has_body = False
+            for stmt in node.body:
+                res = self._generate_node(stmt)
+                if res and res.strip():
+                    result += f"{self._indent()}{res}\n"
+                    if not res.strip().startswith("#"):
+                        has_body = True
+            if not has_body:
+                result += f"{self._indent()}pass\n"
+            self.indent_level -= 1
+            return result
+
+        elif isinstance(node, SQLBlock):
+            result = f"with BeginSQL(alias=\"{node.alias}\") as sql:\n"
+            self.indent_level += 1
+            
+            for col in node.columns:
+                col_str = f"sql.column(\"{col.name}\""
+                if col.type:
+                    col_str += f", \"{col.type}\""
+                col_str += ")\n"
+                result += f"{self._indent()}{col_str}"
+            
+            if node.sql_query:
+                result += f"{self._indent()}sql.query(\"\"\"{node.sql_query}\"\"\")\n"
+            
+            if node.body:
+                for stmt in node.body:
+                    res = self._generate_node(stmt)
+                    if res and res.strip():
+                        result += f"{self._indent()}{res}\n"
+            
+            if not node.columns and not node.sql_query and not node.body:
+                result += f"{self._indent()}pass\n"
+            
+            self.indent_level -= 1
             return result
 
         elif isinstance(node, DoCase):

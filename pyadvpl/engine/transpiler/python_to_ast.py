@@ -6,7 +6,8 @@ from .parser import (
     IfStatement, WhileLoop, FunctionCall, BinaryExpression, CommentNode,
     ArrayLiteral, ArrayAccess, MethodCall, AliasAccess, ForLoop, 
     AssignmentExpression, RawNode, CodeBlock, UnaryExpression, PreprocessorNode,
-    ClassDeclaration, MethodDeclaration, TryStatement
+    ClassDeclaration, MethodDeclaration, TryStatement, TransactionStatement,
+    SQLBlock, SQLColumn
 )
 
 class PythonToAST:
@@ -176,6 +177,48 @@ class PythonToAST:
                         else: recover_body.append(t)
                         
             return TryStatement(body, recover_body, error_var)
+
+        elif isinstance(node, ast.With):
+            for item in node.items:
+                if isinstance(item.context_expr, ast.Call):
+                    func = item.context_expr.func
+                    if isinstance(func, ast.Name):
+                        if func.id == "Transaction":
+                            body = []
+                            for s in node.body:
+                                t = self._translate_node(s)
+                                if t:
+                                    if isinstance(t, list): body.extend(t)
+                                    else: body.append(t)
+                            return TransactionStatement(body)
+                        
+                        elif func.id == "BeginSQL":
+                            alias = ""
+                            for kw in item.context_expr.keywords:
+                                if kw.arg == "alias" and isinstance(kw.value, ast.Constant):
+                                    alias = kw.value.value
+                            
+                            columns = []
+                            sql_query = ""
+                            body = []
+                            
+                            for s in node.body:
+                                if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call):
+                                    call = s.value
+                                    if isinstance(call.func, ast.Attribute):
+                                        if call.func.attr == "column" and len(call.args) >= 1:
+                                            col_name = call.args[0].value if isinstance(call.args[0], ast.Constant) else ""
+                                            col_type = call.args[1].value if len(call.args) > 1 and isinstance(call.args[1], ast.Constant) else ""
+                                            columns.append(SQLColumn(col_name, col_type))
+                                        elif call.func.attr == "query" and call.args:
+                                            sql_query = call.args[0].value if isinstance(call.args[0], ast.Constant) else ""
+                                else:
+                                    t = self._translate_node(s)
+                                    if t:
+                                        if isinstance(t, list): body.extend(t)
+                                        else: body.append(t)
+                            
+                            return SQLBlock(alias, columns, sql_query, body)
             
         elif isinstance(node, ast.Expr):
             if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == "_advpl_comment_":

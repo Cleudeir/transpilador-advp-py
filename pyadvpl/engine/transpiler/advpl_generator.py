@@ -3,7 +3,8 @@ from .parser import (
     RawNode, CommentNode, IfStatement, WhileLoop, FunctionCall, 
     BinaryExpression, ArrayLiteral, ArrayAccess, PreprocessorNode,
     ForLoop, MethodCall, AliasAccess, AssignmentExpression, UnaryExpression,
-    ClassDeclaration, MethodDeclaration, TryStatement
+    ClassDeclaration, MethodDeclaration, TryStatement, TransactionStatement,
+    SQLBlock, SQLColumn, MultiVariableDeclaration
 )
 
 class ADVPLGenerator:
@@ -38,27 +39,41 @@ class ADVPLGenerator:
             result = f"{prefix} {name}{params_str}\n"
             self.indent_level += 1
             
-            # Local variable declarations
-            locals_ = []
+            # Local variable declarations with modifiers
+            locals_ = {}
             def find_locals(nodes):
                 for n in nodes:
-                    if isinstance(n, (AssignmentExpression, VariableDeclaration)):
-                        target = n.target if isinstance(n, AssignmentExpression) else n.name
+                    if isinstance(n, VariableDeclaration):
+                        v = n.name
+                        if v not in locals_:
+                            locals_[v] = n.modifier if hasattr(n, 'modifier') else "LOCAL"
+                    elif isinstance(n, AssignmentExpression):
+                        target = n.target
                         if isinstance(target, Literal) and target.type == "VARIABLE":
                             v = target.value
-                            if v not in locals_: locals_.append(v)
+                            if v not in locals_:
+                                locals_[v] = "LOCAL"
                         elif isinstance(target, str):
-                            if target not in locals_: locals_.append(target)
+                            if target not in locals_:
+                                locals_[target] = "LOCAL"
                     if hasattr(n, 'body') and isinstance(n.body, list): find_locals(n.body)
                     if hasattr(n, 'then_body') and isinstance(n.then_body, list): find_locals(n.then_body)
                     if hasattr(n, 'else_body') and isinstance(n.else_body, list): find_locals(n.else_body)
             
             find_locals(node.body)
             params_set = set(node.params) if node.params else set()
-            locals_ = [l for l in locals_ if l.upper() not in params_set and l.upper() not in ("SELF", "NIL")]
+            locals_ = {k: v for k, v in locals_.items() if k.upper() not in params_set and k.upper() not in ("SELF", "NIL")}
             
             if locals_:
-                result += f"{self._indent()}LOCAL {', '.join(locals_)}\n\n"
+                grouped = {}
+                for var, modifier in locals_.items():
+                    if modifier not in grouped:
+                        grouped[modifier] = []
+                    grouped[modifier].append(var)
+                for modifier in ("STATIC", "PRIVATE", "PUBLIC", "LOCAL"):
+                    if modifier in grouped:
+                        result += f"{self._indent()}{modifier} {', '.join(grouped[modifier])}\n"
+                result += "\n"
 
             if not node.body:
                 result += f"{self._indent()}RETURN Nil\n"
@@ -94,26 +109,40 @@ class ADVPLGenerator:
             result = f"METHOD {node.name}{params_str} CLASS {node.class_name}\n"
             self.indent_level += 1
             
-            locals_ = []
+            locals_ = {}
             def find_locals(nodes):
                 for n in nodes:
-                    if isinstance(n, (AssignmentExpression, VariableDeclaration)):
-                        target = n.target if isinstance(n, AssignmentExpression) else n.name
+                    if isinstance(n, VariableDeclaration):
+                        v = n.name
+                        if v not in locals_:
+                            locals_[v] = n.modifier if hasattr(n, 'modifier') else "LOCAL"
+                    elif isinstance(n, AssignmentExpression):
+                        target = n.target
                         if isinstance(target, Literal) and target.type == "VARIABLE":
                             v = target.value
-                            if v not in locals_: locals_.append(v)
+                            if v not in locals_:
+                                locals_[v] = "LOCAL"
                         elif isinstance(target, str):
-                            if target not in locals_: locals_.append(target)
+                            if target not in locals_:
+                                locals_[target] = "LOCAL"
                     if hasattr(n, 'body') and isinstance(n.body, list): find_locals(n.body)
                     if hasattr(n, 'then_body') and isinstance(n.then_body, list): find_locals(n.then_body)
                     if hasattr(n, 'else_body') and isinstance(n.else_body, list): find_locals(n.else_body)
             
             find_locals(node.body)
             params_set = set(node.params) if node.params else set()
-            locals_ = [l for l in locals_ if l.upper() not in params_set and l.upper() not in ("SELF", "NIL")]
+            locals_ = {k: v for k, v in locals_.items() if k.upper() not in params_set and k.upper() not in ("SELF", "NIL")}
             
             if locals_:
-                result += f"{self._indent()}LOCAL {', '.join(locals_)}\n\n"
+                grouped = {}
+                for var, modifier in locals_.items():
+                    if modifier not in grouped:
+                        grouped[modifier] = []
+                    grouped[modifier].append(var)
+                for modifier in ("STATIC", "PRIVATE", "PUBLIC", "LOCAL"):
+                    if modifier in grouped:
+                        result += f"{self._indent()}{modifier} {', '.join(grouped[modifier])}\n"
+                result += "\n"
             
             if not node.body:
                 if node.name == "New":
@@ -138,7 +167,17 @@ class ADVPLGenerator:
         
         elif isinstance(node, VariableDeclaration):
             val_str = self._generate_node(node.value)
+            modifier = getattr(node, 'modifier', 'LOCAL')
+            if modifier and modifier not in ('LOCAL', 'PRIVATE', 'PUBLIC', 'STATIC'):
+                modifier = 'LOCAL'
             return f"{node.name} {node.operator} {val_str}"
+            
+        elif isinstance(node, MultiVariableDeclaration):
+            lines = []
+            for decl in node.declarations:
+                val_str = self._generate_node(decl.value)
+                lines.append(f"{decl.name} {decl.operator} {val_str}")
+            return ("\n" + self._indent()).join(lines)
             
         elif isinstance(node, AssignmentExpression):
             target = self._generate_node(node.target)
@@ -202,6 +241,43 @@ class ADVPLGenerator:
                 self.indent_level -= 1
                 
             result += f"{self._indent()}END SEQUENCE"
+            return result
+
+        elif isinstance(node, TransactionStatement):
+            result = "Begin Transaction\n"
+            self.indent_level += 1
+            for stmt in node.body:
+                res = self._generate_node(stmt)
+                if res: result += f"{self._indent()}{res}\n"
+            self.indent_level -= 1
+            result += f"{self._indent()}End Transaction"
+            return result
+
+        elif isinstance(node, SQLBlock):
+            result = "BeginSql"
+            if node.alias:
+                result += f' Alias "{node.alias}"'
+            result += "\n"
+            self.indent_level += 1
+            
+            for col in node.columns:
+                col_str = f"COLUMN {col.name}"
+                if col.type:
+                    col_str += f" AS {col.type}"
+                result += f"{self._indent()}{col_str}\n"
+            
+            if node.sql_query:
+                result += f"\n{self._indent()}{node.sql_query}\n"
+            
+            self.indent_level -= 1
+            result += f"{self._indent()}EndSql"
+            
+            if node.body:
+                result += "\n"
+                for stmt in node.body:
+                    res = self._generate_node(stmt)
+                    if res: result += f"{self._indent()}{res}\n"
+            
             return result
 
         elif isinstance(node, WhileLoop):

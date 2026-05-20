@@ -4,8 +4,192 @@ advp.db — Funções e classes de banco de dados compatíveis com ADVPL.
 Mapeamento 1:1 com as funções nativas do Protheus.
 """
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, List, ContextManager
+from contextlib import contextmanager
 from .types import Nil, Array
+
+
+# ---------------------------------------------------------------------------
+# Controle de Transações (BEGIN TRANSACTION / END TRANSACTION)
+# ---------------------------------------------------------------------------
+
+class Transaction:
+    """
+    Context manager para controle de transações no Protheus.
+    
+    Uso:
+        with Transaction():
+            RecLock('SB1', .T.)
+            SB1->B1_COD = "TEST"
+            SB1->(MsUnlock())
+    
+    Equivale a:
+        Begin Transaction
+            ...
+        End Transaction
+    """
+    
+    def __enter__(self):
+        """Inicia a transação (Begin Transaction)."""
+        pass
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Finaliza a transação (End Transaction).
+        Se houver exceção, a transação é automaticamente cancelada (DisarmTransaction).
+        """
+        if exc_type is not None:
+            DisarmTransaction()
+        return False
+
+
+def DisarmTransaction() -> None:
+    """DisarmTransaction() — cancela a transação atual."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# SQL Blocks (BeginSQL / EndSQL)
+# ---------------------------------------------------------------------------
+
+class BeginSQL:
+    """
+    Context manager para execução de queries SQL nativas no Protheus.
+    
+    Uso:
+        with BeginSQL(alias="SQL_SB1") as sql:
+            sql.column("B1_COD", "CHAR")
+            sql.column("B1_DESC", "CHAR")
+            sql.query("SELECT B1_COD, B1_DESC FROM %table:SB1% SB1 WHERE SB1.%notDel%")
+        
+        while not sql_eof():
+            print(sql.B1_COD)
+            sql_skip()
+        sql_close()
+    
+    Equivale a:
+        BeginSql Alias "SQL_SB1"
+            COLUMN B1_COD AS CHAR
+            COLUMN B1_DESC AS CHAR
+            SELECT B1_COD, B1_DESC FROM SB1 SB1 WHERE SB1.D_E_L_E_T_ = ' '
+        EndSql
+    """
+    
+    def __init__(self, alias: str = ""):
+        self.alias = alias
+        self.columns: List[dict] = []
+        self.query = ""
+        self._results: List[dict] = []
+        self._current_row = -1
+    
+    def __enter__(self):
+        """Inicia o bloco SQL (BeginSql)."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Finaliza o bloco SQL (EndSql)."""
+        return False
+    
+    def column(self, name: str, col_type: str = "") -> "BeginSQL":
+        """Define um coluna com tipo específico."""
+        self.columns.append({"name": name, "type": col_type})
+        return self
+    
+    def query(self, sql: str) -> "BeginSQL":
+        """Define a query SQL a ser executada."""
+        self.query = sql
+        return self
+    
+    def __getattr__(self, name: str) -> Any:
+        """Acesso aos campos do resultado (sql.B1_COD → SQL_SB1->B1_COD)."""
+        if name.startswith("_"):
+            return object.__getattribute__(self, name)
+        if self._current_row >= 0 and self._current_row < len(self._results):
+            return self._results[self._current_row].get(name, Nil)
+        return Nil
+
+
+def sql_eof() -> bool:
+    """Verifica se chegou ao fim do resultado da query SQL."""
+    return True
+
+
+def sql_skip(n: int = 1) -> None:
+    """Avança n registros no resultado da query SQL."""
+    pass
+
+
+def sql_close() -> None:
+    """Fecha a área de resultado da query SQL."""
+    pass
+
+
+def sql_alias() -> str:
+    """Retorna o alias da query SQL atual."""
+    return ""
+
+
+# ---------------------------------------------------------------------------
+# Funções SQL (TCSQLExec, TCSQLError, TCSQLQuery)
+# ---------------------------------------------------------------------------
+
+def TCSqlExec(statement: str, connection: str = "") -> int:
+    """
+    TCSqlExec(cStatement) — Executa uma query SQL direta.
+    
+    Retorna:
+        >= 0: Sucesso
+        < 0: Erro (use TCSQLError() para detalhes)
+    """
+    return 0
+
+
+def TCSQLError() -> str:
+    """
+    TCSQLError() — Retorna a mensagem de erro do último TCSqlExec.
+    """
+    return ""
+
+
+def TCSQLQuery(query: str, connection: str = "") -> Any:
+    """
+    TCSQLQuery(cQuery) — Executa uma query e retorna o resultado.
+    """
+    return Nil
+
+
+def TCSQLPlan(query: str) -> str:
+    """
+    TCSQLPlan(cQuery) — Retorna o plano de execução da query.
+    """
+    return ""
+
+
+def RetSQLName(alias: str) -> str:
+    """
+    RetSQLName(cAlias) — Retorna o nome real da tabela no banco de dados.
+    """
+    return alias
+
+
+def RetSQLCond(condition: str) -> str:
+    """
+    RetSQLCond(cCondition) — Formata uma condição para uso em SQL.
+    """
+    return condition
+
+
+def FormatIn(values: str, separator: str = ",") -> str:
+    """
+    FormatIn(cValues, cSeparator) — Formata valores para cláusula IN.
+    """
+    return values
+
+
+def ValToSQL(value: Any, col_type: str = "C") -> str:
+    """
+    ValToSQL(xValue, cType) — Converte um valor para formato SQL.
+    """
+    return ""
 
 
 # ---------------------------------------------------------------------------

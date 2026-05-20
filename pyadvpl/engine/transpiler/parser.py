@@ -16,6 +16,23 @@ class VariableDeclaration(ASTNode):
     name: str 
     value: ASTNode
     operator: str = ":="
+    modifier: str = "LOCAL"
+
+@dataclass
+class SQLColumn(ASTNode):
+    name: str
+    type: str = ""
+
+@dataclass
+class SQLBlock(ASTNode):
+    alias: str
+    columns: List[SQLColumn]
+    sql_query: str
+    body: List[ASTNode]
+
+@dataclass
+class TransactionStatement(ASTNode):
+    body: List[ASTNode]
 
 @dataclass
 class MultiVariableDeclaration(ASTNode):
@@ -181,7 +198,8 @@ class ADVPLParser:
                     'FUNCTION', 'LOCAL', 'CASE', 'DO', 'CLASS', 'STATIC', 'PRIVATE', 
                     'PUBLIC', 'IF', 'ELSE', 'ELSEIF', 'ENDIF', 'WHILE', 'ENDDO', 
                     'FOR', 'NEXT', 'TO', 'RETURN', 'EXIT', 'USER', 'METHOD', 
-                    'BEGINSQL', 'ENDSQL', 'OTHERWISE', 'ENDCASE'
+                    'BEGINSQL', 'ENDSQL', 'OTHERWISE', 'ENDCASE', 'TRANSACTION',
+                    'COLUMN', 'AS'
                 ):
                     self.pos += 1
                     return token
@@ -237,6 +255,8 @@ class ADVPLParser:
         elif token.type == 'BEGIN':
             if self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].type == 'SEQUENCE':
                 return self.parse_try_statement()
+            elif self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].type == 'TRANSACTION':
+                return self.parse_transaction_statement()
         elif token.type == 'IF':
             return self.parse_if_statement()
         elif token.type == 'DO':
@@ -272,13 +292,7 @@ class ADVPLParser:
             content = self.consume('PREPROCESSOR').value
             return PreprocessorNode(content)
         elif token.type == 'BEGINSQL':
-            self.consume('BEGINSQL')
-            sql_tokens = []
-            while self.current_token().type != 'ENDSQL' and self.current_token().type != 'EOF':
-                sql_tokens.append(self.consume())
-            if self.current_token().type == 'ENDSQL':
-                self.consume('ENDSQL')
-            return RawNode(sql_tokens)
+            return self.parse_sql_block()
         
         if token.type == 'SEMICOLON':
             self.consume('SEMICOLON')
@@ -562,9 +576,9 @@ class ADVPLParser:
             if self.current_token().type in ('ASSIGN', 'EQ'):
                 op = self.consume().value
                 val_node = self.parse_expression()
-                declarations.append(VariableDeclaration(name_token.value, val_node, operator=op))
+                declarations.append(VariableDeclaration(name_token.value, val_node, operator=op, modifier=modifier))
             else:
-                declarations.append(VariableDeclaration(name_token.value, Literal('None', 'NONE')))
+                declarations.append(VariableDeclaration(name_token.value, Literal('None', 'NONE'), modifier=modifier))
             
             if self.current_token().type == 'COMMA':
                 self.consume('COMMA')
@@ -709,6 +723,74 @@ class ADVPLParser:
             self.consume('SEQUENCE')
             
         return TryStatement(body, recover_body, error_var)
+
+    def parse_transaction_statement(self) -> ASTNode:
+        self.consume('BEGIN')
+        self.consume('TRANSACTION')
+        
+        body = []
+        while self.current_token().type not in ('EOF', 'END'):
+            if self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'END':
+                if self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].type == 'TRANSACTION':
+                    break
+            body.append(self.parse_statement())
+            
+        if self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'END':
+            self.consume('IDENTIFIER')
+            self.consume('TRANSACTION')
+            
+        return TransactionStatement(body)
+
+    def parse_sql_block(self) -> ASTNode:
+        self.consume('BEGINSQL')
+        
+        alias = ""
+        if self.current_token().type == 'IDENTIFIER' and self.current_token().value.upper() == 'ALIAS':
+            self.consume('IDENTIFIER')
+            alias_token = self.current_token()
+            if alias_token.type == 'STRING':
+                alias = alias_token.value.strip('"\'')
+                self.pos += 1
+            elif alias_token.type == 'IDENTIFIER':
+                alias = alias_token.value
+                self.pos += 1
+        
+        columns = []
+        sql_lines = []
+        
+        while self.current_token().type != 'ENDSQL' and self.current_token().type != 'EOF':
+            if self.current_token().type == 'COMMENT':
+                self.consume()
+                continue
+                
+            if self.current_token().type == 'COLUMN':
+                self.consume('COLUMN')
+                col_name = self.consume('IDENTIFIER').value
+                col_type = ""
+                if self.current_token().type == 'AS':
+                    self.consume('AS')
+                    col_type = self.consume('IDENTIFIER').value
+                columns.append(SQLColumn(col_name, col_type))
+            else:
+                token = self.current_token()
+                sql_lines.append(token.value)
+                self.pos += 1
+        
+        if self.current_token().type == 'ENDSQL':
+            self.consume('ENDSQL')
+        
+        sql_query = ' '.join(sql_lines).strip()
+        
+        body = []
+        while self.current_token().type not in ('EOF', 'USER', 'FUNCTION', 'METHOD', 'STATIC'):
+            next_token = self.current_token()
+            if next_token.type == 'IDENTIFIER' and next_token.value.upper() in ('END', 'RETURN', 'IF', 'WHILE', 'FOR', 'DO'):
+                break
+            if next_token.type in ('FUNCTION', 'USER', 'STATIC', 'METHOD'):
+                break
+            body.append(self.parse_statement())
+        
+        return SQLBlock(alias, columns, sql_query, body)
 
     def parse_function_declaration(self, is_user=False, is_static=False) -> FunctionDeclaration:
         name_token = self.consume('IDENTIFIER')
