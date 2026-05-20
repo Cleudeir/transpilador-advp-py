@@ -581,8 +581,243 @@ def ExecAuto(func: Callable, *params: Any) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Funções de validação CPF/CNPJ
+# REST / HTTP Client (FWRest, HttpGet, HttpPost, HttpPut, HttpDelete)
 # ---------------------------------------------------------------------------
+
+class FWRest:
+    """
+    FWRest — Cliente REST para consumo de WebServices.
+    
+    Uso:
+        oRest := FWRest():New("https://viacep.com.br/ws")
+        oRest:setPath("/17054679/json/")
+        If oRest:Get(aHeaders)
+            result := oRest:cResult
+        Else
+            error := oRest:GetLastError()
+        EndIf
+    """
+
+    def __init__(self, url: str = ""):
+        self._url: str = url
+        self._path: str = ""
+        self._headers: list = []
+        self._body: str = ""
+        self._response: str = ""
+        self._last_error: str = ""
+        self._status: int = 0
+        self._timeout: int = 30
+        self.cResult: str = ""
+
+    def New(self, url: str = "") -> "FWRest":
+        """FWRest:New() — Construtor da classe."""
+        obj = FWRest(url)
+        return obj
+
+    def setPath(self, path: str) -> "FWRest":
+        """FWRest:setPath() — Define o caminho/endpoint da URL."""
+        self._path = path
+        return self
+
+    def SetPath(self, path: str) -> "FWRest":
+        """FWRest:SetPath() — Define o caminho/endpoint (alias para setPath)."""
+        return self.setPath(path)
+
+    def Get(self, headers: list = None) -> bool:
+        """FWRest:Get() — Executa requisição GET. Retorna .T. em caso de sucesso."""
+        self._headers = headers or []
+        self._body = ""
+        # Simula envio
+        self.cResult = '{{"status": "simulated", "message": "GET simulado para {0}{1}"}}'.format(
+            self._url, self._path
+        )
+        self._response = self.cResult
+        return True
+
+    def Post(self, headers: list = None, body: str = "") -> bool:
+        """FWRest:Post() — Executa requisição POST. Retorna .T. em caso de sucesso."""
+        self._headers = headers or []
+        self._body = body
+        self.cResult = '{{"status": "simulated", "message": "POST simulado para {0}{1}"}}'.format(
+            self._url, self._path
+        )
+        self._response = self.cResult
+        return True
+
+    def Put(self, headers: list = None, body: str = "") -> bool:
+        """FWRest:Put() — Executa requisição PUT. Retorna .T. em caso de sucesso."""
+        self._headers = headers or []
+        self._body = body
+        self.cResult = '{{"status": "simulated", "message": "PUT simulado para {0}{1}"}}'.format(
+            self._url, self._path
+        )
+        self._response = self.cResult
+        return True
+
+    def Delete(self, headers: list = None) -> bool:
+        """FWRest:Delete() — Executa requisição DELETE. Retorna .T. em caso de sucesso."""
+        self._headers = headers or []
+        self._body = ""
+        self.cResult = '{{"status": "simulated", "message": "DELETE simulado para {0}{1}"}}'.format(
+            self._url, self._path
+        )
+        self._response = self.cResult
+        return True
+
+    def GetResult(self) -> str:
+        """FWRest:GetResult() — Retorna o resultado da requisição."""
+        return self._response
+
+    def GetLastError(self) -> str:
+        """FWRest:GetLastError() — Retorna a última mensagem de erro."""
+        return self._last_error
+
+    def SetTimeout(self, seconds: int) -> "FWRest":
+        """FWRest:SetTimeout() — Define o timeout em segundos."""
+        self._timeout = seconds
+        return self
+
+    def SetContentType(self, content_type: str) -> "FWRest":
+        """FWRest:SetContentType() — Define o Content-Type da resposta."""
+        return self
+
+    def SetResponse(self, response: str) -> None:
+        """FWRest:SetResponse() — Define a resposta manualmente (usado em WSRESTFUL)."""
+        self._response = response
+        self.cResult = response
+
+    def setStatus(self, status: int) -> "FWRest":
+        """FWRest:setStatus() — Define o status HTTP da resposta."""
+        self._status = status
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Funções HTTP diretas (HttpGet, HttpPost, HttpPut, HttpDelete, HttpJson)
+# ---------------------------------------------------------------------------
+
+def HttpGet(
+    cUrl: str,
+    cGetParms: str = "",
+    nTimeOut: int = 0,
+    aHeadStr: list = None,
+    cHeaderGet: str = "",
+) -> str:
+    """
+    HttpGet() — Aciona uma requisição GET para uma URL.
+    
+    Parâmetros:
+        cUrl — URL da requisição
+        cGetParms — Parâmetros GET
+        nTimeOut — Timeout em segundos
+        aHeadStr — Array com headers da requisição
+        cHeaderGet — Retorno dos headers (passar por referência com @)
+    Retorno:
+        String com o resultado da requisição
+    """
+    return ""
+
+
+def HttpPost(
+    cUrl: str,
+    cGetParms: str = "",
+    cPostParms: str = "",
+    nTimeOut: int = 0,
+    aHeadStr: list = None,
+    cHeaderGet: str = "",
+) -> str:
+    """
+    HttpPost() — Aciona uma requisição POST para uma URL.
+    
+    Parâmetros:
+        cUrl — URL da requisição
+        cGetParms — Parâmetros GET
+        cPostParms — Parâmetros POST (corpo da requisição)
+        nTimeOut — Timeout em segundos
+        aHeadStr — Array com headers da requisição
+        cHeaderGet — Retorno dos headers (passar por referência com @)
+    Retorno:
+        String com o resultado da requisição
+    """
+    return ""
+
+
+def HttpPut(
+    cUrl: str,
+    cPutParms: str = "",
+    nTimeOut: int = 0,
+    aHeadStr: list = None,
+    cHeaderGet: str = "",
+) -> str:
+    """
+    HttpPut() — Aciona uma requisição PUT para uma URL.
+    
+    Parâmetros:
+        cUrl — URL da requisição
+        cPutParms — Parâmetros PUT (corpo da requisição)
+        nTimeOut — Timeout em segundos
+        aHeadStr — Array com headers da requisição
+        cHeaderGet — Retorno dos headers (passar por referência com @)
+    Retorno:
+        String com o resultado da requisição
+    """
+    return ""
+
+
+def HttpDelete(
+    cUrl: str,
+    nTimeOut: int = 0,
+    aHeadStr: list = None,
+    cHeaderGet: str = "",
+) -> str:
+    """
+    HttpDelete() — Aciona uma requisição DELETE para uma URL.
+    
+    Parâmetros:
+        cUrl — URL da requisição
+        nTimeOut — Timeout em segundos
+        aHeadStr — Array com headers da requisição
+        cHeaderGet — Retorno dos headers (passar por referência com @)
+    Retorno:
+        String com o resultado da requisição
+    """
+    return ""
+
+
+def HttpJson(
+    cUrl: str,
+    cMethod: str = "GET",
+    cPostParms: str = "",
+    nTimeOut: int = 0,
+    aHeadStr: list = None,
+) -> str:
+    """
+    HttpJson() — Aciona uma requisição HTTP com retorno em JSON.
+    
+    Parâmetros:
+        cUrl — URL da requisição
+        cMethod — Método HTTP (GET, POST, PUT, DELETE)
+        cPostParms — Parâmetros do corpo
+        nTimeOut — Timeout em segundos
+        aHeadStr — Array com headers
+    Retorno:
+        String JSON com o resultado
+    """
+    return ""
+
+
+# ---------------------------------------------------------------------------
+# Utilitários de Área de Trabalho (FWRestArea)
+# ---------------------------------------------------------------------------
+
+def FWRestArea(area: Any) -> None:
+    """FWRestArea() — Restaura a área de trabalho salva (ponto de retorno)."""
+    pass
+
+
+def RestArea(area: Any) -> None:
+    """RestArea() — Restaura a área de trabalho (atalho para FWRestArea)."""
+    pass
 
 def ValidCpf(cpf: str) -> bool:
     """ValidCpf() — Valida um CPF."""

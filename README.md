@@ -353,6 +353,8 @@ cd frontend && npm install && cd ..
 - [x] `protheus` — funções do framework (GetMV, SuperGetMV, Posicione, etc.)
 - [x] `protheus` — classes de browse (`FWBrowse`, `FWBrwColumn`, `FWMBrowse`, `FWMarkBrowse`, `FWTemporaryTable`)
 - [x] `protheus` — classes de modelo e relatório (`oModel`, `oReport`, `oSection`)
+- [x] `protheus` — REST/HTTP client (`FWRest`, `HttpGet`, `HttpPost`, `HttpPut`, `HttpDelete`, `HttpJson`)
+- [x] `protheus` — utilitários de área (`FWRestArea`, `RestArea`)
 - [x] `types` — tipos base (`Nil`, `Array`, `Date`)
 
 #### Testes
@@ -374,7 +376,7 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 
 #### Biblioteca de Stubs
 
-- 🎯 Completar stubs de funções REST (`FWRest`, `HttpGet`, `HttpPost`)
+- 🎯 Stubs de integração XML (`XmlParser`, `XmlNode2Arr`, `JSONObject`)
 - 🎯 Stubs de integração XML (`XmlParser`, `XmlNode2Arr`, `JSONObject`)
 - 💡 Adicionar type hints completos e docstrings a todos os stubs existentes
 - 💡 Suporte a `TCSqlToArr` e funções de consulta SQL via stub

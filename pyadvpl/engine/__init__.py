@@ -16,5 +16,6 @@ from .core.ui import MsgAlert, MsNewProcess, FWDialogModal
 from .core.protheus import (
     FWBrowse, FWBrwColumn, FWTemporaryTable,
     FWMBrowse, FWMarkBrowse,
+    FWRest,
     oModel, oReport, oSection
 )
