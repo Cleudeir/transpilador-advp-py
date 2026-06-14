@@ -29,7 +29,7 @@ module.exports = {
   apps: [
     {
       name: "pyadvpl-backend",
-      script: "/root/.asdf/shims/python3",
+      script: "/usr/bin/python3",
       args: "-m pyadvpl.engine.server",
       interpreter: "none",
       cwd: ROOT,
