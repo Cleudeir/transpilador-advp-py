@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 _ENV_PATH = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(dotenv_path=_ENV_PATH)
 
-API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_HOST = os.getenv("API_HOST", "127.0.0.1")
 API_PORT = int(os.getenv("API_PORT", "8040"))
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]

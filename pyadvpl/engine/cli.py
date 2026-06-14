@@ -13,7 +13,7 @@ _cwd_env = Path.cwd() / ".env"
 _pkg_env = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(dotenv_path=_cwd_env if _cwd_env.exists() else _pkg_env)
 
-API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_HOST = os.getenv("API_HOST", "127.0.0.1")
 API_PORT = int(os.getenv("API_PORT", "8040"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
 
