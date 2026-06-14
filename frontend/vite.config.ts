@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 8041,
-    host: '0.0.0.0',
+    host: '127.0.0.1',
     allowedHosts: ['pyadvpl.apps.tec.br'],
     proxy: {
       '/api': {

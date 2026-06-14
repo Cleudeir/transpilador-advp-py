@@ -21,7 +21,7 @@ const envVars = loadEnv(path.join(ROOT, ".env"));
 
 const API_HOST = envVars.API_HOST || "0.0.0.0";
 const API_PORT = envVars.API_PORT || "8040";
-const FRONTEND_HOST = envVars.FRONTEND_HOST || "0.0.0.0";
+const FRONTEND_HOST = envVars.FRONTEND_HOST || "127.0.0.1";
 const FRONTEND_PORT = envVars.FRONTEND_PORT || "8041";
 const LOG_LEVEL = envVars.LOG_LEVEL || "info";
 
