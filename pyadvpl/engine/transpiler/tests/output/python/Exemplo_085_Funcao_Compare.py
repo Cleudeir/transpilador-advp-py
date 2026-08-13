@@ -1,0 +1,50 @@
+# Esse exemplo faz parte da série do YouTube, Maratona de Exemplos, do canal Terminal de Informação, 
+#     caso queira ver esse exemplo rodando em vídeo, acesse o seguinte link:     https://terminaldeinformacao.com/2023/11/01/comparacao-de-duas-variaveis-inclusive-objeto-usando-compare-maratona-advpl-e-tl-085/
+# Bibliotecas
+# PREPROCESSOR: #Include "TOTVS.ch"
+# {Protheus.doc} User Function zExe085
+# Exemplo de como comparar duas variáveis (inclusive objetos, arrays e blocos de código)
+# @type Function
+# @author Atilio
+# @since 09/12/2022
+# @obs 
+#     Função Compare
+#     Parâmetros
+#         + Informa a variável que irá comparar (array, objeto, bloco de código, numérico, caractere, lógico e data)
+#         + Informa a variável que será comparada (array, objeto, bloco de código, numérico, caractere, lógico e data)
+#         + Caso seja um array e você quiser ver qual a posição que esta diferente passe esse atributo com o @
+#     Retorno
+#         + Retorna .F. se houver diferença e .T. se estiver igual
+# 
+#     **** Apoie nosso projeto, se inscreva em https://www.youtube.com/TerminalDeInformacao ****
+def u_zExe085():
+    aArea = FWGetArea()
+    oFont1 = None
+    oFont2 = None
+    aArray1 = []
+    aArray2 = []
+    nPosDif = 0
+    # Instancia a classe TFont em dois objetos
+    oFont1 = TFont().New('Tahoma', None, -12)
+    oFont2 = TFont().New('Tahoma', None, -12)
+    # Compara os dois objetos
+    if Compare(oFont1, oFont2):
+        FWAlertSuccess('Os dois objetos são iguais', 'Teste Compare com Objetos')
+    else:
+        FWAlertError('Os dois objetos são diferentes', 'Teste Compare com Objetos')
+
+    # Monta os dois arrays
+    aAdd(aArray1, 'Daniel')
+    aAdd(aArray1, 'João')
+    aAdd(aArray1, 'Maria')
+    aAdd(aArray2, 'Daniel')
+    aAdd(aArray2, 'José')
+    aAdd(aArray2, 'Maria')
+    # Compara os dois arrays
+    if Compare(aArray1, aArray2, ref_(nPosDif)):
+        FWAlertSuccess('Os dois arrays são iguais', 'Teste Compare com Arrays')
+    else:
+        FWAlertError('Os dois arrays são diferentes, primeira diferença encontrada em ' + cValToChar(nPosDif), 'Teste Compare com Arrays')
+
+    FWRestArea(aArea)
+    return

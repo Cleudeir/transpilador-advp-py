@@ -1,0 +1,32 @@
+// caso queira ver esse exemplo rodando em vídeo, acesse o seguinte link:     https://terminaldeinformacao.com/2024/05/03/abrindo-um-relatorio-com-a-printerpreview-maratona-advpl-e-tl-392/
+// Bibliotecas
+#Include "TOTVS.ch"
+#Include "TopConn.ch"
+// {Protheus.doc} User Function zExe392
+// Abre um arquivo gerado pelo printer.exe antes da impressão
+// @type Function
+// @author Atilio
+// @since 28/03/2023
+// Função PrinterPreview
+// Parâmetros
+// Objeto que terá o arquivo aberto
+// Retorno
+// Função não tem retorno
+// **** Apoie nosso projeto, se inscreva em https://www.youtube.com/TerminalDeInformacao ****
+USER FUNCTION zExe392()
+    LOCAL aArea, cArqRelat, oPrinter
+
+    aArea := FWGetArea()
+    cArqRelat := ""
+    oPrinter := Nil
+    // Definindo o arquivo que será aberto
+    cArqRelat := "\spool\matr680.prt"
+    // Criando um objeto de impressão e setando o arquivo
+    oPrinter := TMSPrinter():New()
+    oPrinter:SetFile(cArqRelat, .F.)
+    oPrinter:SetPortrait()
+    oPrinter:SetPaperSize(9)
+    // Exibe o relatório em tela
+    PrinterPreview(oPrinter)
+    FWRestArea(aArea)
+    RETURN

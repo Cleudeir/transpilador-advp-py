@@ -1,0 +1,44 @@
+// caso queira ver esse exemplo rodando em vídeo, acesse o seguinte link:     https://terminaldeinformacao.com/2024/05/17/buscando-o-nome-da-tabela-no-banco-com-a-retsqlname-maratona-advpl-e-tl-421/
+// Bibliotecas
+#Include "TOTVS.ch"
+// {Protheus.doc} User Function zExe420
+// Retorna o filtro dos campos de filial e "delete" de uma tabela
+// @type Function
+// @author Atilio
+// @since 28/03/2023
+// Função RetSQLCond
+// Parâmetros
+// Recebe o Alias para a montagem da condição
+// Retorno
+// Retorna a condição de filtro montada
+// **** Apoie nosso projeto, se inscreva em https://www.youtube.com/TerminalDeInformacao ****
+USER FUNCTION zExe420()
+    LOCAL aArea, cQryAux, cCondicao
+
+    aArea := FWGetArea()
+    cQryAux := ""
+    cCondicao := RetSQLCond("SB1")
+    // Busca todos os produtos que não estejam bloqueados
+    cQryAux := " SELECT " + CRLF
+    cQryAux += "     B1_COD, " + CRLF
+    cQryAux += "     B1_DESC, " + CRLF
+    cQryAux += "     B1_UCOM, " + CRLF
+    cQryAux += "     SB1.R_E_C_N_O_ AS SB1REC " + CRLF
+    cQryAux += " FROM " + CRLF
+    cQryAux += "     " + RetSQLName("SB1") + " SB1 " + CRLF
+    cQryAux += " WHERE " + CRLF
+    cQryAux += cCondicao + CRLF
+    cQryAux += "     AND B1_MSBLQL != '1' " + CRLF
+    cQryAux += "     AND B1_TIPO = 'PA' " + CRLF
+    PLSQuery(cQryAux, "QRY_AUX")
+    // Se houver dados
+    If .NOT. QRY_AUX->( DbEof() )
+        // Percorre os dados da query
+        While .NOT. QRY_AUX->( DbEof() )
+            // Suas customizações
+            QRY_AUX:DbSkip()
+        EndDo
+    EndIf
+    QRY_AUX:DbCloseArea()
+    FWRestArea(aArea)
+    RETURN

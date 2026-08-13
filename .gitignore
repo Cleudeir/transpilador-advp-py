@@ -15,4 +15,8 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
-**/output/*
+**/output/*.env.*
+!.env.example
+node_modules/
+*.pid
+.DS_Store

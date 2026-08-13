@@ -1,0 +1,43 @@
+// caso queira ver esse exemplo rodando em vídeo, acesse o seguinte link:     https://terminaldeinformacao.com/2024/01/04/criando-uma-barra-com-botoes-usando-a-enchoicebar-maratona-advpl-e-tl-153/
+// Bibliotecas
+#Include "TOTVS.ch"
+// {Protheus.doc} User Function zExe152
+// Verifica se um conteúdo esta vazio
+// @type Function
+// @author Atilio
+// @since 18/12/2022
+// @see https://tdn.totvs.com/display/tec/Empty
+// Função Empty
+// Parâmetros
+// + xExp           , Indefinido   , Indica o valor que será validado
+// Retorno
+// + lRet           , Lógico       , Retorna .T. se o conteúdo for vazio ou .F. se tiver dados
+// **** Apoie nosso projeto, se inscreva em https://www.youtube.com/TerminalDeInformacao ****
+USER FUNCTION zExe152()
+    LOCAL aArea, aDados, cNome, cNome2, nValor, dData, cVarTst, cMensagem
+
+    aArea := FWGetArea()
+    aDados := {  }
+    cNome := Space(10)
+    cNome2 := "Daniel"
+    nValor := 0
+    dData := sToD("")
+    cVarTst := Nil
+    cMensagem := ""
+    // Monta a mensagem
+    cMensagem += "aDados   : " + cValToChar(Empty(aDados)) + CRLF
+    cMensagem += "cNome    : " + cValToChar(Empty(cNome)) + CRLF
+    cMensagem += "cNome2   : " + cValToChar(Empty(cNome2)) + CRLF
+    cMensagem += "nValor   : " + cValToChar(Empty(nValor)) + CRLF
+    cMensagem += "dData    : " + cValToChar(Empty(dData)) + CRLF
+    cMensagem += "cVarTst  : " + cValToChar(Empty(cVarTst)) + CRLF
+    FWAlertInfo(cMensagem, "Teste 1 - Empty")
+    // Agora faz direto o teste com if
+    cNome := "aaa"
+    If Empty(cNome)
+        FWAlertError("Conteúdo esta vazio na variável", "Teste 2 - Empty")
+    Else
+        FWAlertInfo("A variável possui conteúdo", "Teste 2 - Empty")
+    EndIf
+    FWRestArea(aArea)
+    RETURN
