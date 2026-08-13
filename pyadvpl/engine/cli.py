@@ -1,9 +1,13 @@
 import argparse
+import hashlib
+import json
 import os
 import sys
 import shutil
 import tomllib  # Para ler pyadvpl.toml (Python 3.11+)
 from pathlib import Path
+
+CACHE_FILE = ".pyadvpl_cache.json"
 
 from dotenv import load_dotenv
 
@@ -98,7 +102,7 @@ def cmd_build(args):
     output_path = Path(args.output or config.get("transpile", {}).get("output_dir", "dist"))
     
     print(f"🔨 Building: {input_path} -> {output_path}")
-    process_transpile(input_path, output_path, "py2adv")
+    process_transpile(input_path, output_path, "py2adv", incremental=args.incremental)
 
 def cmd_convert(args):
     """Atalho para ADVPL -> Python."""
@@ -108,22 +112,74 @@ def cmd_convert(args):
     print(f"📂 Converting legacy: {input_path} -> {output_path}")
     process_transpile(input_path, output_path, "adv2py")
 
-def process_transpile(input_path, output_path, direction):
+def file_hash(path: Path) -> str:
+    """Calcula o hash SHA-256 do conteúdo de um arquivo."""
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
+def load_cache(cache_path: Path) -> dict:
+    """Carrega o cache de hashes das fontes transpiladas."""
+    if cache_path.exists():
+        with open(cache_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_cache(cache_path: Path, cache: dict) -> None:
+    """Persiste o cache de hashes das fontes transpiladas."""
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(cache_path, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2, ensure_ascii=False)
+
+
+def process_transpile(input_path, output_path, direction, incremental=False):
     input_ext = ".prw" if direction == "adv2py" else ".py"
     output_ext = ".py" if direction == "adv2py" else ".prw"
+    use_cache = direction == "py2adv"
 
     if input_path.is_dir():
         output_path.mkdir(parents=True, exist_ok=True)
+        cache_path = output_path / CACHE_FILE
+        cache = load_cache(cache_path) if use_cache else {}
+        seen = []
         for file in input_path.glob(f"**/*{input_ext}"):
             if file.name == "__init__.py": continue
             relative_path = file.relative_to(input_path)
             target_file = output_path / relative_path.with_suffix(output_ext)
             target_file.parent.mkdir(parents=True, exist_ok=True)
-            transpile_file(file, target_file, direction)
+            key = str(relative_path)
+            seen.append(key)
+            current_hash = file_hash(file)
+            if incremental and cache.get(key) == current_hash and target_file.exists():
+                print(f"⏭️  Inalterado, pulando: {relative_path}")
+                continue
+            if transpile_file(file, target_file, direction):
+                if use_cache:
+                    cache[key] = current_hash
+
+        if use_cache:
+            # Remove entradas de fontes que não existem mais
+            for key in [k for k in cache if k not in seen]:
+                del cache[key]
+            save_cache(cache_path, cache)
     else:
         if not output_path.suffix:
             output_path = output_path / input_path.with_suffix(output_ext).name
-        transpile_file(input_path, output_path, direction)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path = output_path.parent / CACHE_FILE
+        cache = load_cache(cache_path) if use_cache else {}
+        key = str(input_path)
+        current_hash = file_hash(input_path)
+        if incremental and cache.get(key) == current_hash and output_path.exists():
+            print(f"⏭️  Inalterado, pulando: {input_path}")
+        elif transpile_file(input_path, output_path, direction):
+            if use_cache:
+                cache[key] = current_hash
+                save_cache(cache_path, cache)
 
 def transpile_file(input_file, output_file, direction):
     try:
@@ -142,8 +198,10 @@ def transpile_file(input_file, output_file, direction):
 
         with open(output_file, 'w', encoding='utf-8' if direction == "adv2py" else 'latin-1') as f:
             f.write(output_code)
+        return True
     except Exception as e:
         print(f"Erro em {input_file}: {e}")
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="pyadvpl CLI")
@@ -154,6 +212,7 @@ def main():
     build = subparsers.add_parser("build", help="Python -> ADVPL")
     build.add_argument("input", nargs="?", help="Entrada (padrão: src/)")
     build.add_argument("-o", "--output", help="Saída (padrão: dist/)")
+    build.add_argument("--incremental", action="store_true", help="Recompila apenas fontes modificadas desde o último build (cache por hash)")
 
     convert = subparsers.add_parser("convert", help="ADVPL -> Python")
     convert.add_argument("input", nargs="?", help="Entrada (padrão: legacy/)")

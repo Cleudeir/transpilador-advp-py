@@ -480,6 +480,7 @@ As contribuições mais necessárias estão marcadas com 🎯 (alta prioridade) 
 
 - 🎯 Comando `pyadvpl test` para rodar a suite de testes localmente
 - 🎯 Relatório de cobertura de transpilação (quantos exemplos passam/falham)
+- 🎯 Transpilação incremental com cache (`pyadvpl build --incremental`): recompila apenas os arquivos `.py` modificados desde o último `build`, comparando o hash de cada fonte com o ADVPL gerado em `dist/`, acelerando reconstruções em projetos grandes
 - 💡 Modo `watch` no CLI (`pyadvpl dev --watch`) para recompilar ao salvar
 - 💡 Plugin VS Code com diagnósticos em tempo real
 
