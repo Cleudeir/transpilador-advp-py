@@ -128,9 +128,9 @@ run_bulk_tests.sh / run_bulk_tests.bat
   - [ ] `with Transaction():` e `with BeginSQL(alias="Q") as sql:` são instanciáveis.
 
 ### F8 — Stubs core: `ui`
-- **Status:** implementado — **com duplicação de definições (ver D2)**
-- **Arquivos:** `pyadvpl/engine/core/ui.py` (451 linhas)
-- **Conteúdo verificado:** mensagens (`MsgAlert`, `MsgInfo`, `MsgStop`, `MsgYesNo`, `MsgNoYes`, `MsgOkCancel`, `ConOut`, `FWAlertInfo/Warning/Success/YesNo`, `FWMsgRun`), régua de progresso (`ProcRegua`, `IncRegua`, `ProcAltera`, `SetProcInfo`), classes `MsNewProcess` (linha 93) e `FWDialogModal` (linha 187), `MsAdvSize`, `InputBox`, `ReadVar`. **As funções `MsgAlert`/`MsgInfo`/`MsgStop`/`MsgYesNo`/`MsgNoYes`/`MsgOkCancel`/`ConOut`/`FWMsgRun`/`ProcRegua`/`IncRegua`/`ProcAltera`/`SetProcInfo` são definidas DUAS vezes** (linhas 14–84 e 345–428) — as segundas definições sobrescrevem as primeiras.
+- **Status:** implementado — **duplicação de definições corrigida (ver D2)**
+- **Arquivos:** `pyadvpl/engine/core/ui.py` (377 linhas)
+- **Conteúdo verificado:** mensagens (`MsgAlert`, `MsgInfo`, `MsgStop`, `MsgYesNo`, `MsgNoYes`, `MsgOkCancel`, `ConOut`, `FWAlertInfo/Warning/Success/YesNo`, `FWMsgRun`), régua de progresso (`ProcRegua`, `IncRegua`, `ProcAltera`, `SetProcInfo`), classes `MsNewProcess` (linha 93) e `FWDialogModal` (linha 187), `MsAdvSize`, `InputBox`, `ReadVar`. Cada função/classes definida exatamente uma vez (as duplicações de linhas 14–84 foram removidas; a versão canônica fica em 345–451).
 - **Critérios de aceite (após correção D2):**
   - [ ] Cada função/classes definida exatamente uma vez no módulo.
   - [ ] Comportamento preservado (as segundas definições são a versão canônica; remover apenas as primeiras).
@@ -246,11 +246,12 @@ run_bulk_tests.sh / run_bulk_tests.bat
   - [ ] Nenhum teste existente regride.
 
 ### D2 — Funções duplicadas em `ui.py` (manutenibilidade)
-- **Evidência:** `MsgAlert`, `MsgInfo`, `MsgStop`, `MsgYesNo`, `MsgNoYes`, `MsgOkCancel`, `ConOut`, `FWMsgRun`, `ProcRegua`, `IncRegua`, `ProcAltera`, `SetProcInfo` definidas em 2 grupos (linhas 14–84 e 345–428). As segundas definições são canônicas (sobrescrevem as primeiras).
-- **Correção:** remover o primeiro grupo (linhas ~14–84), mantendo apenas as versões finais (que incluem `InputBox`/`ReadVar` no mesmo bloco).
+- **Evidência:** `MsgAlert`, `MsgInfo`, `MsgStop`, `MsgYesNo`, `MsgNoYes`, `MsgOkCancel`, `ConOut`, `FWMsgRun`, `ProcRegua`, `IncRegua`, `ProcAltera`, `SetProcInfo` definidas em 2 grupos (linhas 14–84 e 345–451). As segundas definições são canônicas (sobrescrevem as primeiras).
+- **Correção:** remover o primeiro grupo (linhas 14–84), mantendo apenas as versões canônicas em 345–451 (que incluem `InputBox`/`ReadVar`).
 - **Critérios de aceite:**
   - [ ] `grep -c '^def MsgAlert' pyadvpl/engine/core/ui.py` → 1.
-  - [ ] Todas as funções continuam importáveis e com o mesmo comportamento.
+  - [ ] Todas as funções/classes continuam importáveis e com o mesmo comportamento.
+  - [ ] Round-trip e outros testes não regredem.
 
 ### D3 — Versão inconsistente (0.2.0 vs 2.5.0)
 - **Evidência:** `pyproject.toml` → `version = "0.2.0"`; `server.py` → `version="0.2.0"`; `frontend/src/App.tsx` → "Versão Engine: **2.5.0**".
