@@ -175,7 +175,7 @@ cd frontend
 npm run dev
 ```
 
-_Acesse o link gerado (ex: `http://localhost:5173`) para usar a interface._
+_Acesse o link gerado (ex: `http://localhost:8041`) para usar a interface._
 
 ---
 
