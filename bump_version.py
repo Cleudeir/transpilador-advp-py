@@ -144,19 +144,17 @@ def main(apply=False, commits=None):
     PYPROJECT.write_text(content, encoding="utf-8")
     print(f"Aplicado: pyproject.toml version = \"{next_str}\"")
 
-    # Atualiza CHANGELOG.md: nova seção logo abaixo do cabeçalho existente.
+    # Atualiza CHANGELOG.md: insere a nova seção logo antes da primeira seção.
     if CHANGELOG.exists():
         existing = CHANGELOG.read_text(encoding="utf-8")
-        # Normaliza: o arquivo pode começar com "# Changelog\n\n".
-        prefix = "# Changelog\n\n"
-        if existing.startswith(prefix):
-            existing = existing[len(prefix):]
-        if existing.startswith(CHANGELOG_HEADER):
-            body = existing[len(CHANGELOG_HEADER):]
-        else:
-            body = existing
-        section = changelog_entry(next_str, commit_lines)
-        CHANGELOG.write_text(CHANGELOG_HEADER + section + body, encoding="utf-8")
+        # Localiza a primeira seção "## [...]" e insere a nova acima dela.
+        # O cabeçalho "# Changelog" não contém "## [", então ele é preservado.
+        marker = "## ["
+        idx = existing.find(marker)
+        if idx != -1:
+            new_section = changelog_entry(next_str, commit_lines)
+            existing = existing[:idx] + new_section + "\n\n" + existing[idx:]
+        CHANGELOG.write_text(existing, encoding="utf-8")
         print(f"Aplicado: CHANGELOG.md com seção [{next_str}]")
 
 
