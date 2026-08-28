@@ -6,6 +6,20 @@ Formato: versão (do `pyproject.toml`) + data (UTC) + commits relevantes.
 
 ---
 
+## [0.2.1] — (esta versão)
+
+### Mudanças desta versão
+
+- **089b760** — 089b7603cb0aab0425191e26b1de7d84f848ad07 fix: alinhar porta do dashboard no README (5173 -> 8041, D4)
+- **4a2fd8d** — 4a2fd8d4f8248457d2816c487e3acd36f6b6f31d fix: alinhar versao do frontend no rodape (2.5.0 -> 0.2.0, D3)
+- **06541e1** — 06541e1d73cfce7f082414635ea3f5c6cb7a470f test: atualizar timestamp do relato round-trip (561/561, 89.37%)
+- **3f681dd** — 3f681ddf0c5a02d6c2339b03c095e3f9ec7abd82 docs: adicionar CHANGELOG.md com historico dos commits (D4)
+- **cdc9db6** — cdc9db63021b372b3618620ba154e31b91d52d5a docs: adicionar bump_version.py para versionamento automatico (D4)Todas as mudanças significativas do projeto **pyadvpl — Transpilador de ADVPL para Python**.
+
+Formato: versão (do `pyproject.toml`) + data (UTC) + commits relevantes.
+
+---
+
 ## [0.2.0] — 2026-08-28
 
 ### Correções (fix)

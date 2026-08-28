@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyadvpl"
-version = "0.2.0"
+version = "0.2.1"
 description = "Um framework para escrever código Python e transpilar para ADVPL no Protheus"
 authors = [
     { name = "Cleudeir", email = "dev@example.com" }
