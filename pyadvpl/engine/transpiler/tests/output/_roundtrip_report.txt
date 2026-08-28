@@ -1,6 +1,6 @@
 RELATÓRIO DE TESTE ROUND-TRIP (ADVPL -> PY -> ADVPL)
 ============================================================
-Data: 2026-08-28 11:35:36
+Data: 2026-08-28 21:55:25
 Total de Arquivos: 561
 Sucessos no Ciclo: 561
 Precisão Média: 89.37%

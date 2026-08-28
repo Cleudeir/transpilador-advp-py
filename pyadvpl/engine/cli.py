@@ -30,15 +30,18 @@ try:
     from .transpiler.python_generator import PythonGenerator
 except ImportError:
     # Fallback para execução direta no repositório
+    # (script executado diretamente -> __package__=None -> imports relativos falham)
+    # Adiciona a raiz do projeto e usa imports ABSOLUTOS.
     sys.path.append(str(Path(__file__).parent.parent.parent))
     try:
-        from .transpiler.python_to_ast import PythonToAST
-        from .transpiler.advpl_generator import ADVPLGenerator
-        from .transpiler.lexer import Lexer
-        from .transpiler.parser import ADVPLParser
-        from .transpiler.python_generator import PythonGenerator
+        from pyadvpl.engine.transpiler.python_to_ast import PythonToAST
+        from pyadvpl.engine.transpiler.advpl_generator import ADVPLGenerator
+        from pyadvpl.engine.transpiler.lexer import Lexer
+        from pyadvpl.engine.transpiler.parser import ADVPLParser
+        from pyadvpl.engine.transpiler.python_generator import PythonGenerator
     except ImportError:
         print("Erro: Não foi possível carregar os módulos do pyadvpl.")
+        sys.exit(1)
 
 def load_config():
     """Lê o arquivo pyadvpl.toml se existir."""
@@ -226,11 +229,14 @@ def main():
     trans.add_argument("-o", "--output")
     trans.add_argument("-d", "--direction", default="py2adv")
 
+    subparsers.add_parser("test", help="Roda a suíte de testes (CLI + round-trip)")
+
     args = parser.parse_args()
 
     if args.command == "init": cmd_init(args)
     elif args.command == "build": cmd_build(args)
     elif args.command == "convert": cmd_convert(args)
+    elif args.command == "test": cmd_test(args)
     elif args.command == "dev" or args.command == "serve":
         import uvicorn
         from .server import app
@@ -239,6 +245,36 @@ def main():
         process_transpile(Path(args.input), Path(args.output) if args.output else Path("dist"), args.direction)
     else:
         parser.print_help()
+
+def cmd_test(args):
+
+    # Roda a suíte de testes (CLI incremental + round-trip) e imprime resumo.
+    import subprocess
+    import os
+    import sys
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    root = project_root
+    # 1) unitários do CLI
+    print("# Suíte de testes pyadvpl")
+    p_cli = subprocess.run(
+        [sys.executable, "-m", "pytest", "pyadvpl/engine/tests/", "-q"],
+        cwd=root, capture_output=True, text=True,
+    )
+    print(p_cli.stdout.strip())
+    if p_cli.returncode != 0:
+        print(p_cli.stderr.strip())
+    # 2) round-trip bulk
+    p_bulk = subprocess.run(
+        [sys.executable, "-m", "pyadvpl.engine.transpiler.tests.test_roundtrip_bulk"],
+        cwd=root, capture_output=True, text=True,
+    )
+    print("# Round-trip bulk")
+    print(p_bulk.stdout.strip())
+    if p_bulk.returncode != 0:
+        print(p_bulk.stderr.strip())
+    if p_cli.returncode != 0 or p_bulk.returncode != 0:
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

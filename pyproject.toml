@@ -17,7 +17,7 @@ dependencies = [
     "pytest",
     "httpx"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 
 [project.scripts]
 pyadvpl = "pyadvpl.engine.cli:main"
