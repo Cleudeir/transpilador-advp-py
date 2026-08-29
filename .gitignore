@@ -21,3 +21,6 @@ node_modules/
 *.pid
 .DS_Store
 .env.*
+
+# Gerado pelo test_roundtrip_bulk (timestamp muda a cada corrida)
+output/_roundtrip_report.txt
