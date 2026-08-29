@@ -23,4 +23,4 @@ node_modules/
 .env.*
 
 # Gerado pelo test_roundtrip_bulk (timestamp muda a cada corrida)
-output/_roundtrip_report.txt
+pyadvpl/engine/transpiler/tests/output/_roundtrip_report.txt
