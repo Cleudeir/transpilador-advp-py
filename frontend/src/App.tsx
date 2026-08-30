@@ -202,7 +202,7 @@ const App: React.FC = () => {
 
           <div className="footer-links">
             <p>&copy; 2026 pyadvpl Framework</p>
-            <p>Versão Engine: 2.5.0</p>
+            <p>Versão Engine: 0.2.0</p>
           </div>
         </aside>
       </main>
