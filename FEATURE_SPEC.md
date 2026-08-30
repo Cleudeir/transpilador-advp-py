@@ -17,7 +17,7 @@ O **pyadvpl** é um framework para escrever código **Python** e transpilar para
 5. **Dashboard web** (`frontend/`) — React + Vite + TypeScript para transpilar em tempo real (ambas as direções).
 6. **Infraestrutura** — `dev.sh`/`dev.bat`, PM2 (`ecosystem.config.cjs`), `.env` via `python-dotenv`, scripts de teste em lote.
 
-**Versão declarada:** `0.2.0` (em `pyproject.toml` e `server.py`). O rodapé do frontend exibe "Versão Engine: 2.5.0" — ver **D3**.
+**Versão declarada:** `0.2.0` (em `pyproject.toml` e `server.py`). Rodapé do frontend exibe "Versão Engine: 0.2.0" — alinhado ao pacote (ver **D3**).
 
 **Suíte de testes verificada (executada nesta iteração):**
 
@@ -254,9 +254,10 @@ run_bulk_tests.sh / run_bulk_tests.bat
   - [ ] Round-trip e outros testes não regredem.
 
 ### D3 — Versão inconsistente (0.2.0 vs 2.5.0)
-- **Evidência:** `pyproject.toml` → `version = "0.2.0"`; `server.py` → `version="0.2.0"`; `frontend/src/App.tsx` → "Versão Engine: **2.5.0**".
-- **Correção:** alinhar a versão do rodapé do frontend à versão real do pacote (0.2.0) ou centralizar a versão (ex.: importar de `pyadvpl`/metadata).
-- **Critérios de aceite:** rodapé do frontend exibe a mesma versão do `pyproject.toml`.
+|- **Evidência:** `pyproject.toml` → `version = "0.2.0"`; `server.py` → `version="0.2.0"`; `frontend/src/App.tsx` → rodapé exibia "Versão Engine: 2.5.0" (divergência).
+|- **Correção:** alinhar o rodapé do frontend à versão real do pacote (0.2.0).
+|- **Critérios de aceite:** rodapé do frontend exibe a mesma versão do `pyproject.toml` (0.2.0).
+|- **Status:** implementado — rodapé agora exibe "Versão Engine: 0.2.0".
 
 ### D4 — Porta do frontend no README (5173 vs 8041)
 - **Evidência:** `README.md` diz "Acesse o link gerado (ex: `http://localhost:5173`)"; `vite.config.ts` fixa porta **8041**; `dev.sh`/PM2 usam 8041.
